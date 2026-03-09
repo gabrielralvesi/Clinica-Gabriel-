@@ -3,15 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ClinicFlow Pro - Sistema Completo</title>
+    <title>ClinicFlow Pro - Sistema Completo de Gestão Clínica</title>
     
+    <!-- Fontes e ícones -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     
     <style>
-        /* ===== VARIÁVEIS ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         :root {
             --primary: #10b981;
             --primary-dark: #059669;
@@ -28,13 +34,6 @@
             --info: #3b82f6;
             --radius: 0.75rem;
             --radius-full: 9999px;
-            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
         }
 
         body {
@@ -46,7 +45,7 @@
 
         .hidden { display: none !important; }
 
-        /* ===== HEADER ===== */
+        /* Header */
         .header {
             background: var(--bg-card);
             border-bottom: 1px solid var(--border);
@@ -118,7 +117,7 @@
             color: var(--primary);
         }
 
-        /* ===== NAVEGAÇÃO ===== */
+        /* Navegação */
         .nav-tabs {
             background: var(--bg-card);
             border-bottom: 1px solid var(--border);
@@ -153,14 +152,14 @@
             border-bottom: 2px solid var(--primary);
         }
 
-        /* ===== MAIN ===== */
+        /* Main */
         .main-content {
             max-width: 1400px;
             margin: 0 auto;
             padding: 2rem;
         }
 
-        /* ===== CARDS ===== */
+        /* Cards */
         .card {
             background: var(--bg-card);
             border: 1px solid var(--border);
@@ -188,7 +187,14 @@
             padding: 1rem;
         }
 
-        /* ===== GRIDS ===== */
+        /* Grids */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
         .grid-2 {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -201,25 +207,13 @@
             gap: 1.5rem;
         }
 
-        .grid-4 {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 1.5rem;
-        }
-
-        .dashboard-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1.5rem;
-        }
-
         @media (max-width: 768px) {
-            .grid-2, .grid-3, .grid-4 {
+            .grid-2, .grid-3 {
                 grid-template-columns: 1fr;
             }
         }
 
-        /* ===== STAT CARDS ===== */
+        /* Stat Cards */
         .stat-card {
             background: var(--bg-card);
             border: 1px solid var(--border);
@@ -252,7 +246,7 @@
             margin-top: 0.25rem;
         }
 
-        /* ===== FORMULÁRIOS ===== */
+        /* Formulários */
         .form-group {
             margin-bottom: 1.5rem;
         }
@@ -297,7 +291,7 @@
             flex: 1;
         }
 
-        /* ===== BOTÕES ===== */
+        /* Botões */
         .btn {
             padding: 0.75rem 1.5rem;
             border-radius: var(--radius);
@@ -309,7 +303,6 @@
             display: inline-flex;
             align-items: center;
             gap: 0.5rem;
-            transition: all 0.2s;
         }
 
         .btn:hover {
@@ -335,7 +328,7 @@
             font-size: 0.875rem;
         }
 
-        /* ===== LISTAS ===== */
+        /* Listas */
         .list {
             display: flex;
             flex-direction: column;
@@ -354,7 +347,7 @@
             border-color: var(--primary);
         }
 
-        /* ===== PILLS ===== */
+        /* Pills */
         .pill {
             display: inline-block;
             padding: 0.25rem 0.75rem;
@@ -377,7 +370,22 @@
             border-color: transparent;
         }
 
-        /* ===== MODAL ===== */
+        /* Progresso */
+        .progress-bar {
+            height: 8px;
+            background: var(--bg);
+            border-radius: var(--radius-full);
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--primary);
+            border-radius: var(--radius-full);
+            transition: width 0.3s;
+        }
+
+        /* Modal */
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -432,11 +440,11 @@
             margin-top: 2rem;
         }
 
-        /* ===== TABS ANAMNESE ===== */
+        /* Tabs Anamnese */
         .anamnese-tabs {
             display: flex;
             gap: 0.5rem;
-            margin-bottom: 1.5rem;
+            margin-bottom: 2rem;
             overflow-x: auto;
             padding-bottom: 0.5rem;
             border-bottom: 1px solid var(--border);
@@ -472,7 +480,7 @@
             margin-bottom: 1rem;
         }
 
-        /* ===== AGENDA ===== */
+        /* Agenda */
         .schedule-table {
             overflow-x: auto;
         }
@@ -483,83 +491,36 @@
             min-width: 800px;
         }
 
-        th {
-            background: var(--bg);
+        th, td {
+            border: 1px solid var(--border);
             padding: 0.75rem;
             text-align: left;
-            border: 1px solid var(--border);
         }
 
-        td {
-            padding: 0.75rem;
-            border: 1px solid var(--border);
+        th {
+            background: var(--bg);
         }
 
         .slot {
-            background: var(--bg);
-            border-radius: var(--radius);
             padding: 0.5rem;
+            border-radius: var(--radius);
             cursor: pointer;
         }
 
         .slot-cassems {
             background: var(--primary-light);
-            border-left: 4px solid var(--primary);
         }
 
         .slot-particular {
             background: #fef3c7;
-            border-left: 4px solid var(--warning);
         }
 
         .slot-empty {
             background: var(--bg);
-            border-left: 4px solid var(--border);
+            opacity: 0.5;
         }
 
-        /* ===== PROGRESSO ===== */
-        .progress-bar {
-            height: 8px;
-            background: var(--bg);
-            border-radius: var(--radius-full);
-            overflow: hidden;
-        }
-
-        .progress-fill {
-            height: 100%;
-            background: var(--primary);
-            border-radius: var(--radius-full);
-            transition: width 0.3s;
-        }
-
-        .circular-progress {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            background: conic-gradient(var(--primary) 0deg, var(--bg) 0deg);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-        }
-
-        .circular-progress::before {
-            content: '';
-            position: absolute;
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            background: var(--bg-card);
-        }
-
-        .progress-value {
-            position: relative;
-            z-index: 1;
-            font-weight: 600;
-            color: var(--primary);
-        }
-
-        /* ===== TOKENS ===== */
+        /* Token */
         .token-counter {
             display: flex;
             align-items: center;
@@ -594,10 +555,23 @@
         let pacientes = JSON.parse(localStorage.getItem('pacientes')) || [];
         let sessoes = JSON.parse(localStorage.getItem('sessoes')) || [];
         let tokens = JSON.parse(localStorage.getItem('tokens')) || {};
-        let agenda = JSON.parse(localStorage.getItem('agenda')) || { times: [], recorrencias: {} };
+        let agenda = JSON.parse(localStorage.getItem('agenda')) || { 
+            horarios: DEFAULT_TIMES, 
+            recorrencias: {} 
+        };
         
         let pacienteAtual = null;
         let pacienteSelecionado = null;
+
+        // ============================================
+        // CONSTANTES
+        // ============================================
+        const DEFAULT_TIMES = [
+            "07:00", "07:40", "08:20", "09:00", "09:40", "10:20", "11:00",
+            "13:00", "13:40", "14:20", "15:00", "15:40", "16:20", "17:00", "17:40"
+        ];
+
+        const DIAS = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"];
 
         // ============================================
         // FUNÇÕES AUXILIARES
@@ -618,11 +592,27 @@
         }
 
         function formatarData(data) {
+            if (!data) return '';
             return new Date(data).toLocaleDateString('pt-BR');
         }
 
         function formatarMoeda(valor) {
-            return Number(valor || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+            return Number(valor || 0).toLocaleString('pt-BR', { 
+                style: 'currency', 
+                currency: 'BRL' 
+            });
+        }
+
+        function calcularStatsPaciente(pacienteId) {
+            const sessoesPaciente = sessoes.filter(s => s.pacienteId === pacienteId);
+            return {
+                total: sessoesPaciente.length,
+                realizadas: sessoesPaciente.filter(s => s.status === 'realizou').length,
+                faltas: sessoesPaciente.filter(s => s.status === 'nao').length,
+                debito: sessoesPaciente
+                    .filter(s => s.status === 'realizou' && !s.pago)
+                    .reduce((sum, s) => sum + (Number(s.valor) || 0), 0)
+            };
         }
 
         // ============================================
@@ -639,7 +629,7 @@
                             <div class="logo-icon">CF</div>
                             <div class="logo-text">
                                 <h1>ClinicFlow Pro</h1>
-                                <p>Sistema Completo de Gestão</p>
+                                <p>Sistema Completo de Gestão Clínica</p>
                             </div>
                         </div>
                         
@@ -706,7 +696,10 @@
             `;
 
             document.getElementById('dataAtual').innerHTML = new Date().toLocaleDateString('pt-BR', { 
-                weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
             });
         }
 
@@ -740,7 +733,7 @@
                     </div>
                     
                     <div class="stat-card">
-                        <div class="stat-icon"><i class="fas fa-percent"></i></div>
+                        <div class="stat-icon"><i class="fas fa-users"></i></div>
                         <div class="stat-value">${pacientes.length}</div>
                         <div class="stat-label">Total de Pacientes</div>
                     </div>
@@ -823,6 +816,7 @@
                         <label class="form-label">Adicionar sessão</label>
                         <div class="grid-2">
                             <select id="pacienteSessao" class="form-control">
+                                <option value="">Selecione um paciente</option>
                                 ${pacientes.map(p => `<option value="${p.id}">${p.nome}</option>`).join('')}
                             </select>
                             <input type="time" id="horaSessao" class="form-control" value="08:00">
@@ -831,10 +825,10 @@
                                 <option value="nao">❌ Não realizou</option>
                             </select>
                             <select id="pagamentoSessao" class="form-control">
-                                <option value="nao">💸 Não pago</option>
-                                <option value="sim">💰 Pago</option>
+                                <option value="false">💸 Não pago</option>
+                                <option value="true">💰 Pago</option>
                             </select>
-                            <input type="text" id="valorSessao" class="form-control" placeholder="Valor">
+                            <input type="number" id="valorSessao" class="form-control" placeholder="Valor" step="0.01">
                         </div>
                         <button class="btn btn-primary" onclick="adicionarSessao()" style="margin-top: 1rem;">
                             <i class="fas fa-plus"></i> Adicionar
@@ -860,8 +854,8 @@
                 return paciente?.nome.toLowerCase().includes(busca);
             });
 
-            // Atualizar totais
             document.getElementById('totalDia').innerHTML = sessoesFiltradas.length;
+            
             const totalFaturamento = sessoesFiltradas
                 .filter(s => s.status === 'realizou' && s.pago === true)
                 .reduce((sum, s) => sum + (Number(s.valor) || 0), 0);
@@ -916,11 +910,11 @@
             const data = document.getElementById('dataDiario')?.value;
             const hora = document.getElementById('horaSessao')?.value;
             const status = document.getElementById('statusSessao')?.value;
-            const pago = document.getElementById('pagamentoSessao')?.value === 'sim';
-            const valor = parseFloat(document.getElementById('valorSessao')?.value?.replace(',', '.') || 0);
+            const pago = document.getElementById('pagamentoSessao')?.value === 'true';
+            const valor = parseFloat(document.getElementById('valorSessao')?.value || 0);
 
             if (!pacienteId || !data) {
-                alert('Selecione paciente e data');
+                alert('Selecione um paciente e uma data');
                 return;
             }
 
@@ -935,9 +929,7 @@
             };
 
             sessoes.push(sessao);
-            salvarDados();
             
-            // Se for Cassems, criar token pendente
             const paciente = pacientes.find(p => p.id === pacienteId);
             if (paciente?.convenio === 'cassems') {
                 tokens[sessao.id] = {
@@ -945,9 +937,9 @@
                     data: data,
                     pacienteId: pacienteId
                 };
-                salvarDados();
             }
-
+            
+            salvarDados();
             document.getElementById('horaSessao').value = '08:00';
             document.getElementById('valorSessao').value = '';
             renderizarSessoes();
@@ -1021,7 +1013,7 @@
                         
                         <div class="form-group">
                             <label class="form-label">Valor padrão (R$)</label>
-                            <input type="text" id="valorPaciente" class="form-control" placeholder="80,00">
+                            <input type="number" id="valorPaciente" class="form-control" placeholder="80,00" step="0.01">
                         </div>
                         
                         <button class="btn btn-primary" onclick="adicionarPaciente()">
@@ -1044,13 +1036,13 @@
                     </div>
                 </div>
 
-                <!-- Pasta do paciente (inicialmente oculta) -->
+                <!-- Pasta do paciente -->
                 <div id="pastaPaciente" class="hidden">
                     <div class="card">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-                            <h3 id="tituloPasta" class="card-title" style="margin: 0;">
+                            <h3 class="card-title" style="margin: 0;">
                                 <i class="fas fa-folder-open"></i>
-                                Paciente
+                                <span id="tituloPasta"></span>
                             </h3>
                             <div>
                                 <button class="btn btn-sm" onclick="fecharPasta()">
@@ -1067,7 +1059,7 @@
                                 <div class="progress-bar" style="margin: 1rem 0;">
                                     <div class="progress-fill" id="progressoPaciente" style="width: 0%;"></div>
                                 </div>
-                                <div id="statsPaciente"></div>
+                                <div id="statsPaciente" class="grid-2"></div>
                             </div>
                         </div>
 
@@ -1091,33 +1083,20 @@
                 nascimento: document.getElementById('nascimentoPaciente')?.value || '',
                 telefone: document.getElementById('telefonePaciente')?.value || '',
                 convenio: document.getElementById('convenioPaciente')?.value || 'particular',
-                valorPadrao: parseFloat(document.getElementById('valorPaciente')?.value?.replace(',', '.') || 0),
-                anamnese: {
-                    queixa: '',
-                    historico: '',
-                    observacoes: '',
-                    gestacao: '',
-                    parto: '',
-                    desenvolvimento: '',
-                    alimentacao: '',
-                    saude: '',
-                    escolar: ''
-                }
+                valorPadrao: parseFloat(document.getElementById('valorPaciente')?.value || 0),
+                anamnese: {}
             };
 
             pacientes.push(paciente);
             salvarDados();
-            limparFormularioPaciente();
-            renderizarListaPacientes();
-            mostrarAlerta('Paciente cadastrado com sucesso!');
-        }
-
-        function limparFormularioPaciente() {
+            
             document.getElementById('nomePaciente').value = '';
             document.getElementById('nascimentoPaciente').value = '';
             document.getElementById('telefonePaciente').value = '';
-            document.getElementById('convenioPaciente').value = 'particular';
             document.getElementById('valorPaciente').value = '';
+            
+            renderizarListaPacientes();
+            mostrarAlerta('Paciente cadastrado com sucesso!');
         }
 
         function renderizarListaPacientes() {
@@ -1159,41 +1138,31 @@
             }).join('');
         }
 
-        function calcularStatsPaciente(pacienteId) {
-            const sessoesPaciente = sessoes.filter(s => s.pacienteId === pacienteId);
-            return {
-                total: sessoesPaciente.length,
-                realizadas: sessoesPaciente.filter(s => s.status === 'realizou').length,
-                faltas: sessoesPaciente.filter(s => s.status === 'nao').length,
-                debito: sessoesPaciente
-                    .filter(s => s.status === 'realizou' && !s.pago)
-                    .reduce((sum, s) => sum + (Number(s.valor) || 0), 0)
-            };
-        }
-
         function abrirPasta(id) {
-            pacienteSelecionado = pacientes.find(p => p.id === id);
-            if (!pacienteSelecionado) return;
+            const paciente = pacientes.find(p => p.id === id);
+            if (!paciente) return;
 
-            document.getElementById('viewPacientes').innerHTML = renderizarPastaPaciente();
+            pacienteSelecionado = paciente;
+            
+            document.getElementById('pastaPaciente').classList.remove('hidden');
+            document.getElementById('tituloPasta').innerHTML = paciente.nome;
             
             const stats = calcularStatsPaciente(id);
             const percentual = stats.total > 0 ? (stats.realizadas / stats.total) * 100 : 0;
+            
             document.getElementById('progressoPaciente').style.width = `${percentual}%`;
             document.getElementById('statsPaciente').innerHTML = `
-                <div class="grid-2">
-                    <div class="card-mini">
-                        <div class="stat-label">Sessões realizadas</div>
-                        <div class="stat-value" style="font-size: 1.5rem;">${stats.realizadas}</div>
-                    </div>
-                    <div class="card-mini">
-                        <div class="stat-label">Faltas</div>
-                        <div class="stat-value" style="font-size: 1.5rem;">${stats.faltas}</div>
-                    </div>
-                    <div class="card-mini">
-                        <div class="stat-label">Débito total</div>
-                        <div class="stat-value" style="font-size: 1.5rem;">${formatarMoeda(stats.debito)}</div>
-                    </div>
+                <div class="card-mini">
+                    <div class="stat-label">Realizadas</div>
+                    <div class="stat-value" style="font-size: 1.5rem;">${stats.realizadas}</div>
+                </div>
+                <div class="card-mini">
+                    <div class="stat-label">Faltas</div>
+                    <div class="stat-value" style="font-size: 1.5rem;">${stats.faltas}</div>
+                </div>
+                <div class="card-mini">
+                    <div class="stat-label">Débito</div>
+                    <div class="stat-value" style="font-size: 1.5rem;">${formatarMoeda(stats.debito)}</div>
                 </div>
             `;
 
@@ -1223,49 +1192,9 @@
             `).join('') : '<div class="list-item">Nenhuma sessão registrada</div>';
         }
 
-        function renderizarPastaPaciente() {
-            if (!pacienteSelecionado) return '';
-
-            return `
-                <div class="card">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-                        <h3 class="card-title" style="margin: 0;">
-                            <i class="fas fa-folder-open"></i>
-                            ${pacienteSelecionado.nome}
-                        </h3>
-                        <div>
-                            <button class="btn btn-sm" onclick="voltarListaPacientes()">
-                                <i class="fas fa-arrow-left"></i> Voltar
-                            </button>
-                            <button class="btn btn-sm btn-primary" onclick="abrirAnamnese()">
-                                <i class="fas fa-notes-medical"></i> Anamnese
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="grid-2">
-                        <div>
-                            <div class="progress-bar" style="margin: 1rem 0;">
-                                <div class="progress-fill" id="progressoPaciente" style="width: 0%;"></div>
-                            </div>
-                            <div id="statsPaciente"></div>
-                        </div>
-                    </div>
-
-                    <h4 style="margin: 1.5rem 0 1rem;">Histórico de Sessões</h4>
-                    <div id="historicoPaciente" class="list"></div>
-                </div>
-            `;
-        }
-
-        function voltarListaPacientes() {
-            document.getElementById('viewPacientes').innerHTML = renderizarPacientes();
-            renderizarListaPacientes();
-        }
-
         function fecharPasta() {
+            document.getElementById('pastaPaciente').classList.add('hidden');
             pacienteSelecionado = null;
-            voltarListaPacientes();
         }
 
         // ============================================
@@ -1278,6 +1207,8 @@
             modal.className = 'modal-overlay';
             modal.id = 'modalAnamnese';
             
+            const anamnese = pacienteSelecionado.anamnese || {};
+            
             modal.innerHTML = `
                 <div class="modal">
                     <div class="modal-header">
@@ -1289,72 +1220,223 @@
                     </div>
                     
                     <div class="anamnese-tabs">
-                        <button class="anamnese-tab active" onclick="mudarTabAnamnese('queixa', this)">Queixa</button>
+                        <button class="anamnese-tab active" onclick="mudarTabAnamnese('identificacao', this)">Identificação</button>
+                        <button class="anamnese-tab" onclick="mudarTabAnamnese('queixa', this)">Queixa</button>
                         <button class="anamnese-tab" onclick="mudarTabAnamnese('gestacional', this)">Gestacional</button>
                         <button class="anamnese-tab" onclick="mudarTabAnamnese('desenvolvimento', this)">Desenvolvimento</button>
                         <button class="anamnese-tab" onclick="mudarTabAnamnese('alimentacao', this)">Alimentação</button>
                         <button class="anamnese-tab" onclick="mudarTabAnamnese('saude', this)">Saúde</button>
                         <button class="anamnese-tab" onclick="mudarTabAnamnese('escolar', this)">Escolar</button>
+                        <button class="anamnese-tab" onclick="mudarTabAnamnese('familiar', this)">Familiar</button>
                         <button class="anamnese-tab" onclick="mudarTabAnamnese('obs', this)">Observações</button>
                     </div>
                     
+                    <!-- Identificação -->
+                    <div id="tabIdentificacao" class="anamnese-section">
+                        <h4>Identificação</h4>
+                        <div class="grid-2">
+                            <div class="form-group">
+                                <label class="form-label">Nome completo</label>
+                                <input type="text" id="anamneseNome" class="form-control" value="${pacienteSelecionado.nome || ''}" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Data de nascimento</label>
+                                <input type="date" id="anamneseNascimento" class="form-control" value="${pacienteSelecionado.nascimento || ''}">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Sexo</label>
+                                <select id="anamneseSexo" class="form-control">
+                                    <option value="">Selecione</option>
+                                    <option value="F" ${anamnese.sexo === 'F' ? 'selected' : ''}>Feminino</option>
+                                    <option value="M" ${anamnese.sexo === 'M' ? 'selected' : ''}>Masculino</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Naturalidade</label>
+                                <input type="text" id="anamneseNaturalidade" class="form-control" value="${anamnese.naturalidade || ''}">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Endereço</label>
+                                <input type="text" id="anamneseEndereco" class="form-control" value="${anamnese.endereco || ''}">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Telefone</label>
+                                <input type="text" id="anamneseTelefone" class="form-control" value="${pacienteSelecionado.telefone || ''}">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">E-mail</label>
+                                <input type="email" id="anamneseEmail" class="form-control" value="${anamnese.email || ''}">
+                            </div>
+                        </div>
+                        
+                        <h4 style="margin-top: 2rem;">Responsável</h4>
+                        <div class="grid-2">
+                            <div class="form-group">
+                                <label class="form-label">Nome do responsável</label>
+                                <input type="text" id="anamneseResponsavel" class="form-control" value="${anamnese.responsavel || ''}">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Parentesco</label>
+                                <input type="text" id="anamneseParentesco" class="form-control" value="${anamnese.parentesco || ''}">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Telefone do responsável</label>
+                                <input type="text" id="anamneseTelResponsavel" class="form-control" value="${anamnese.telefoneResponsavel || ''}">
+                            </div>
+                        </div>
+                    </div>
+                    
                     <!-- Queixa Principal -->
-                    <div id="tabQueixa" class="anamnese-section">
+                    <div id="tabQueixa" class="anamnese-section hidden">
                         <h4>Queixa Principal</h4>
                         <div class="form-group">
                             <label class="form-label">Descreva a queixa</label>
-                            <textarea id="queixaInput" class="form-control" rows="4">${pacienteSelecionado.anamnese.queixa || ''}</textarea>
+                            <textarea id="anamneseQueixa" class="form-control" rows="3">${anamnese.queixaPrincipal || ''}</textarea>
+                        </div>
+                        <div class="grid-2">
+                            <div class="form-group">
+                                <label class="form-label">Quando começou?</label>
+                                <input type="text" id="anamneseInicioQueixa" class="form-control" value="${anamnese.inicioQueixa || ''}">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Quem observou?</label>
+                                <input type="text" id="anamneseQuemObservou" class="form-control" value="${anamnese.quemObservou || ''}">
+                            </div>
                         </div>
                         <div class="form-group">
-                            <label class="form-label">Quando começou?</label>
-                            <input type="text" id="inicioQueixa" class="form-control" value="${pacienteSelecionado.anamnese.inicioQueixa || ''}">
+                            <label class="form-label">Evolução da queixa</label>
+                            <textarea id="anamneseEvolucao" class="form-control" rows="2">${anamnese.evolucaoQueixa || ''}</textarea>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Tratamentos anteriores</label>
+                            <textarea id="anamneseTratamentos" class="form-control" rows="2">${anamnese.tratamentosAnteriores || ''}</textarea>
                         </div>
                     </div>
                     
                     <!-- Histórico Gestacional -->
                     <div id="tabGestacional" class="anamnese-section hidden">
-                        <h4>Histórico Gestacional</h4>
-                        <div class="form-group">
-                            <label class="form-label">Gestação (intercorrências, medicamentos)</label>
-                            <textarea id="gestacaoInput" class="form-control" rows="3">${pacienteSelecionado.anamnese.gestacao || ''}</textarea>
+                        <h4>Gestacão</h4>
+                        <div class="grid-2">
+                            <div class="form-group">
+                                <label class="form-label">Gestação desejada?</label>
+                                <select id="anamneseGestacaoDesejada" class="form-control">
+                                    <option value="">Selecione</option>
+                                    <option value="sim" ${anamnese.gestacaoDesejada === 'sim' ? 'selected' : ''}>Sim</option>
+                                    <option value="nao" ${anamnese.gestacaoDesejada === 'nao' ? 'selected' : ''}>Não</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Intercorrências</label>
+                                <input type="text" id="anamneseIntercorrencias" class="form-control" value="${anamnese.intercorrenciasGestacao || ''}">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Medicamentos</label>
+                                <input type="text" id="anamneseMedicamentosGestacao" class="form-control" value="${anamnese.medicamentosGestacao || ''}">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Tipo de parto</label>
+                                <select id="anamneseTipoParto" class="form-control">
+                                    <option value="">Selecione</option>
+                                    <option value="normal" ${anamnese.tipoParto === 'normal' ? 'selected' : ''}>Normal</option>
+                                    <option value="cesarea" ${anamnese.tipoParto === 'cesarea' ? 'selected' : ''}>Cesárea</option>
+                                    <option value="forceps" ${anamnese.tipoParto === 'forceps' ? 'selected' : ''}>Fórceps</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Local do parto</label>
+                                <input type="text" id="anamneseLocalParto" class="form-control" value="${anamnese.localParto || ''}">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Tempo de gestação</label>
+                                <input type="text" id="anamneseTempoGestacao" class="form-control" placeholder="Ex: 39 semanas" value="${anamnese.tempoGestacao || ''}">
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label class="form-label">Parto (tipo, local, intercorrências)</label>
-                            <textarea id="partoInput" class="form-control" rows="3">${pacienteSelecionado.anamnese.parto || ''}</textarea>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Peso ao nascer, APGAR</label>
-                            <input type="text" id="nascimentoInput" class="form-control" value="${pacienteSelecionado.anamnese.nascimento || ''}">
+                        
+                        <h4 style="margin-top: 2rem;">Nascimento</h4>
+                        <div class="grid-2">
+                            <div class="form-group">
+                                <label class="form-label">Peso (kg)</label>
+                                <input type="text" id="anamnesePeso" class="form-control" value="${anamnese.pesoNascimento || ''}">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Comprimento (cm)</label>
+                                <input type="text" id="anamneseComprimento" class="form-control" value="${anamnese.comprimentoNascimento || ''}">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">APGAR</label>
+                                <input type="text" id="anamneseApgar" class="form-control" placeholder="Ex: 9/10" value="${anamnese.apgar || ''}">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Chorou ao nascer?</label>
+                                <select id="anamneseChorou" class="form-control">
+                                    <option value="">Selecione</option>
+                                    <option value="sim" ${anamnese.chorouNascimento === 'sim' ? 'selected' : ''}>Sim, imediatamente</option>
+                                    <option value="demora" ${anamnese.chorouNascimento === 'demora' ? 'selected' : ''}>Com demora</option>
+                                    <option value="ajuda" ${anamnese.chorouNascimento === 'ajuda' ? 'selected' : ''}>Precisou de ajuda</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Precisou de oxigênio?</label>
+                                <select id="anamneseOxigenio" class="form-control">
+                                    <option value="">Selecione</option>
+                                    <option value="sim" ${anamnese.precisouOxigenio === 'sim' ? 'selected' : ''}>Sim</option>
+                                    <option value="nao" ${anamnese.precisouOxigenio === 'nao' ? 'selected' : ''}>Não</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Icterícia?</label>
+                                <select id="anamneseIctericia" class="form-control">
+                                    <option value="">Selecione</option>
+                                    <option value="sim" ${anamnese.ictericia === 'sim' ? 'selected' : ''}>Sim</option>
+                                    <option value="nao" ${anamnese.ictericia === 'nao' ? 'selected' : ''}>Não</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Ficou em incubadora?</label>
+                                <select id="anamneseIncubadora" class="form-control">
+                                    <option value="">Selecione</option>
+                                    <option value="sim" ${anamnese.incubadora === 'sim' ? 'selected' : ''}>Sim</option>
+                                    <option value="nao" ${anamnese.incubadora === 'nao' ? 'selected' : ''}>Não</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Alta com quantos dias?</label>
+                                <input type="text" id="anamneseAlta" class="form-control" value="${anamnese.altaComDias || ''}">
+                            </div>
                         </div>
                     </div>
                     
                     <!-- Desenvolvimento -->
                     <div id="tabDesenvolvimento" class="anamnese-section hidden">
-                        <h4>Desenvolvimento</h4>
+                        <h4>Marcos do Desenvolvimento</h4>
                         <div class="grid-2">
                             <div class="form-group">
-                                <label class="form-label">Sustentou cabeça (idade)</label>
-                                <input type="text" id="cabecaInput" class="form-control" value="${pacienteSelecionado.anamnese.cabeca || ''}">
+                                <label class="form-label">Sustentou a cabeça</label>
+                                <input type="text" id="anamneseCabeca" class="form-control" placeholder="Ex: 3 meses" value="${anamnese.sustentouCabeca || ''}">
                             </div>
                             <div class="form-group">
                                 <label class="form-label">Sentou sem apoio</label>
-                                <input type="text" id="sentouInput" class="form-control" value="${pacienteSelecionado.anamnese.sentou || ''}">
+                                <input type="text" id="anamneseSentou" class="form-control" placeholder="Ex: 7 meses" value="${anamnese.sentou || ''}">
                             </div>
                             <div class="form-group">
                                 <label class="form-label">Engatinhou</label>
-                                <input type="text" id="engatinhouInput" class="form-control" value="${pacienteSelecionado.anamnese.engatinhou || ''}">
+                                <input type="text" id="anamneseEngatinhou" class="form-control" placeholder="Ex: 9 meses" value="${anamnese.engatinhou || ''}">
                             </div>
                             <div class="form-group">
                                 <label class="form-label">Andou</label>
-                                <input type="text" id="andouInput" class="form-control" value="${pacienteSelecionado.anamnese.andou || ''}">
+                                <input type="text" id="anamneseAndou" class="form-control" placeholder="Ex: 12 meses" value="${anamnese.andou || ''}">
                             </div>
                             <div class="form-group">
                                 <label class="form-label">Primeiras palavras</label>
-                                <input type="text" id="palavrasInput" class="form-control" value="${pacienteSelecionado.anamnese.palavras || ''}">
+                                <input type="text" id="anamnesePalavras" class="form-control" placeholder="Ex: 12 meses" value="${anamnese.primeirasPalavras || ''}">
                             </div>
                             <div class="form-group">
                                 <label class="form-label">Formou frases</label>
-                                <input type="text" id="frasesInput" class="form-control" value="${pacienteSelecionado.anamnese.frases || ''}">
+                                <input type="text" id="anamneseFrases" class="form-control" placeholder="Ex: 2 anos" value="${anamnese.formouFrases || ''}">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Controle esfincteriano</label>
+                                <input type="text" id="anamneseEsfincter" class="form-control" placeholder="Ex: 3 anos" value="${anamnese.controleEsfincter || ''}">
                             </div>
                         </div>
                     </div>
@@ -1365,24 +1447,69 @@
                         <div class="grid-2">
                             <div class="form-group">
                                 <label class="form-label">Aleitamento materno</label>
-                                <select id="aleitamentoInput" class="form-control">
+                                <select id="anamneseAleitamento" class="form-control">
                                     <option value="">Selecione</option>
-                                    <option value="sim" ${pacienteSelecionado.anamnese.aleitamento === 'sim' ? 'selected' : ''}>Sim</option>
-                                    <option value="nao" ${pacienteSelecionado.anamnese.aleitamento === 'nao' ? 'selected' : ''}>Não</option>
-                                    <option value="parcial" ${pacienteSelecionado.anamnese.aleitamento === 'parcial' ? 'selected' : ''}>Parcial</option>
+                                    <option value="exclusivo" ${anamnese.aleitamentoMaterno === 'exclusivo' ? 'selected' : ''}>Exclusivo até 6 meses</option>
+                                    <option value="parcial" ${anamnese.aleitamentoMaterno === 'parcial' ? 'selected' : ''}>Parcial</option>
+                                    <option value="nao" ${anamnese.aleitamentoMaterno === 'nao' ? 'selected' : ''}>Não</option>
                                 </select>
                             </div>
                             <div class="form-group">
                                 <label class="form-label">Tempo de aleitamento</label>
-                                <input type="text" id="tempoAleitamento" class="form-control" value="${pacienteSelecionado.anamnese.tempoAleitamento || ''}">
+                                <input type="text" id="anamneseTempoAleitamento" class="form-control" placeholder="Ex: 1 ano" value="${anamnese.tempoAleitamento || ''}">
                             </div>
                             <div class="form-group">
                                 <label class="form-label">Introdução alimentar</label>
-                                <input type="text" id="introducaoInput" class="form-control" value="${pacienteSelecionado.anamnese.introducao || ''}">
+                                <input type="text" id="anamneseIntroducao" class="form-control" placeholder="Como foi?" value="${anamnese.introducaoAlimentar || ''}">
                             </div>
                             <div class="form-group">
                                 <label class="form-label">Dificuldades alimentares</label>
-                                <input type="text" id="dificuldadesAlimentares" class="form-control" value="${pacienteSelecionado.anamnese.dificuldadesAlimentares || ''}">
+                                <input type="text" id="anamneseDificuldadesAlim" class="form-control" placeholder="Ex: Recusa, engasgos" value="${anamnese.dificuldadesAlimentares || ''}">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Aceita variedade?</label>
+                                <select id="anamneseVariedade" class="form-control">
+                                    <option value="">Selecione</option>
+                                    <option value="sim" ${anamnese.aceitaVariedade === 'sim' ? 'selected' : ''}>Sim</option>
+                                    <option value="nao" ${anamnese.aceitaVariedade === 'nao' ? 'selected' : ''}>Não</option>
+                                    <option value="pouca" ${anamnese.aceitaVariedade === 'pouca' ? 'selected' : ''}>Pouca variedade</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Mastigação</label>
+                                <select id="anamneseMastigacao" class="form-control">
+                                    <option value="">Selecione</option>
+                                    <option value="adequada" ${anamnese.mastigacao === 'adequada' ? 'selected' : ''}>Adequada</option>
+                                    <option value="dificuldade" ${anamnese.mastigacao === 'dificuldade' ? 'selected' : ''}>Com dificuldade</option>
+                                    <option value="nao" ${anamnese.mastigacao === 'nao' ? 'selected' : ''}>Não mastiga</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Deglutição</label>
+                                <select id="anamneseDegluticao" class="form-control">
+                                    <option value="">Selecione</option>
+                                    <option value="adequada" ${anamnese.degluticao === 'adequada' ? 'selected' : ''}>Adequada</option>
+                                    <option value="engasgos" ${anamnese.degluticao === 'engasgos' ? 'selected' : ''}>Engasga frequente</option>
+                                    <option value="demora" ${anamnese.degluticao === 'demora' ? 'selected' : ''}>Demora para engolir</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Usa mamadeira?</label>
+                                <select id="anamneseMamadeira" class="form-control">
+                                    <option value="">Selecione</option>
+                                    <option value="sim" ${anamnese.usaMamadeira === 'sim' ? 'selected' : ''}>Sim</option>
+                                    <option value="nao" ${anamnese.usaMamadeira === 'nao' ? 'selected' : ''}>Não</option>
+                                    <option value="as vezes" ${anamnese.usaMamadeira === 'as vezes' ? 'selected' : ''}>Às vezes</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Usa chupeta?</label>
+                                <select id="anamneseChupeta" class="form-control">
+                                    <option value="">Selecione</option>
+                                    <option value="sim" ${anamnese.usaChupeta === 'sim' ? 'selected' : ''}>Sim</option>
+                                    <option value="nao" ${anamnese.usaChupeta === 'nao' ? 'selected' : ''}>Não</option>
+                                    <option value="as vezes" ${anamnese.usaChupeta === 'as vezes' ? 'selected' : ''}>Às vezes</option>
+                                </select>
                             </div>
                         </div>
                     </div>
@@ -1393,23 +1520,137 @@
                         <div class="grid-2">
                             <div class="form-group">
                                 <label class="form-label">Doenças na infância</label>
-                                <input type="text" id="doencasInput" class="form-control" value="${pacienteSelecionado.anamnese.doencas || ''}">
+                                <input type="text" id="anamneseDoencas" class="form-control" value="${anamnese.doencasInfancia || ''}">
                             </div>
                             <div class="form-group">
                                 <label class="form-label">Cirurgias</label>
-                                <input type="text" id="cirurgiasInput" class="form-control" value="${pacienteSelecionado.anamnese.cirurgias || ''}">
+                                <input type="text" id="anamneseCirurgias" class="form-control" value="${anamnese.cirurgias || ''}">
                             </div>
                             <div class="form-group">
                                 <label class="form-label">Alergias</label>
-                                <input type="text" id="alergiasInput" class="form-control" value="${pacienteSelecionado.anamnese.alergias || ''}">
+                                <input type="text" id="anamneseAlergias" class="form-control" value="${anamnese.alergias || ''}">
                             </div>
                             <div class="form-group">
                                 <label class="form-label">Medicamentos contínuos</label>
-                                <input type="text" id="medicamentosInput" class="form-control" value="${pacienteSelecionado.anamnese.medicamentos || ''}">
+                                <input type="text" id="anamneseMedicamentos" class="form-control" value="${anamnese.medicamentosContinuos || ''}">
                             </div>
                             <div class="form-group">
-                                <label class="form-label">Problemas de audição/visão</label>
-                                <input type="text" id="audicaoVisaoInput" class="form-control" value="${pacienteSelecionado.anamnese.audicaoVisao || ''}">
+                                <label class="form-label">Internações</label>
+                                <input type="text" id="anamneseInternacoes" class="form-control" value="${anamnese.internacoes || ''}">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Acompanhamento médico</label>
+                                <input type="text" id="anamneseAcompanhamento" class="form-control" value="${anamnese.acompanhamentoMedico || ''}">
+                            </div>
+                        </div>
+                        
+                        <h4 style="margin-top: 2rem;">Audição e Visão</h4>
+                        <div class="grid-2">
+                            <div class="form-group">
+                                <label class="form-label">Triagem auditiva</label>
+                                <select id="anamneseTriagemAuditiva" class="form-control">
+                                    <option value="">Selecione</option>
+                                    <option value="normal" ${anamnese.triagemAuditiva === 'normal' ? 'selected' : ''}>Normal</option>
+                                    <option value="alterada" ${anamnese.triagemAuditiva === 'alterada' ? 'selected' : ''}>Alterada</option>
+                                    <option value="nao" ${anamnese.triagemAuditiva === 'nao' ? 'selected' : ''}>Não fez</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Otites frequentes?</label>
+                                <select id="anamneseOtites" class="form-control">
+                                    <option value="">Selecione</option>
+                                    <option value="sim" ${anamnese.otitesFrequentes === 'sim' ? 'selected' : ''}>Sim</option>
+                                    <option value="nao" ${anamnese.otitesFrequentes === 'nao' ? 'selected' : ''}>Não</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Cirurgias no ouvido</label>
+                                <input type="text" id="anamneseCirurgiasOuvido" class="form-control" value="${anamnese.cirurgiasOuvido || ''}">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Reage a sons?</label>
+                                <select id="anamneseReacaoSons" class="form-control">
+                                    <option value="">Selecione</option>
+                                    <option value="sim" ${anamnese.reacaoSons === 'sim' ? 'selected' : ''}>Sim</option>
+                                    <option value="as vezes" ${anamnese.reacaoSons === 'as vezes' ? 'selected' : ''}>Às vezes</option>
+                                    <option value="nao" ${anamnese.reacaoSons === 'nao' ? 'selected' : ''}>Não</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Dificuldades visuais</label>
+                                <select id="anamneseDificuldadesVisuais" class="form-control">
+                                    <option value="">Selecione</option>
+                                    <option value="nao" ${anamnese.dificuldadesVisuais === 'nao' ? 'selected' : ''}>Não</option>
+                                    <option value="aproxima" ${anamnese.dificuldadesVisuais === 'aproxima' ? 'selected' : ''}>Aproxima objetos</option>
+                                    <option value="aperta" ${anamnese.dificuldadesVisuais === 'aperta' ? 'selected' : ''}>Aperta os olhos</option>
+                                    <option value="desvio" ${anamnese.dificuldadesVisuais === 'desvio' ? 'selected' : ''}>Desvio ocular</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Usa óculos?</label>
+                                <select id="anamneseOculos" class="form-control">
+                                    <option value="">Selecione</option>
+                                    <option value="sim" ${anamnese.usaOculos === 'sim' ? 'selected' : ''}>Sim</option>
+                                    <option value="nao" ${anamnese.usaOculos === 'nao' ? 'selected' : ''}>Não</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Estrabismo?</label>
+                                <select id="anamneseEstrabismo" class="form-control">
+                                    <option value="">Selecione</option>
+                                    <option value="sim" ${anamnese.estrabismo === 'sim' ? 'selected' : ''}>Sim</option>
+                                    <option value="nao" ${anamnese.estrabismo === 'nao' ? 'selected' : ''}>Não</option>
+                                    <option value="as vezes" ${anamnese.estrabismo === 'as vezes' ? 'selected' : ''}>Às vezes</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <h4 style="margin-top: 2rem;">Sono</h4>
+                        <div class="grid-2">
+                            <div class="form-group">
+                                <label class="form-label">Dorme bem?</label>
+                                <select id="anamneseSono" class="form-control">
+                                    <option value="">Selecione</option>
+                                    <option value="sim" ${anamnese.dormeBem === 'sim' ? 'selected' : ''}>Sim</option>
+                                    <option value="nao" ${anamnese.dormeBem === 'nao' ? 'selected' : ''}>Não</option>
+                                    <option value="as vezes" ${anamnese.dormeBem === 'as vezes' ? 'selected' : ''}>Às vezes</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Horas de sono</label>
+                                <input type="text" id="anamneseHorasSono" class="form-control" placeholder="Ex: 8 horas" value="${anamnese.horasSono || ''}">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Ronca?</label>
+                                <select id="anamneseRonca" class="form-control">
+                                    <option value="">Selecione</option>
+                                    <option value="sim" ${anamnese.ronca === 'sim' ? 'selected' : ''}>Sim</option>
+                                    <option value="nao" ${anamnese.ronca === 'nao' ? 'selected' : ''}>Não</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Respira pela boca?</label>
+                                <select id="anamneseRespiraBoca" class="form-control">
+                                    <option value="">Selecione</option>
+                                    <option value="sim" ${anamnese.respiraBoca === 'sim' ? 'selected' : ''}>Sim</option>
+                                    <option value="nao" ${anamnese.respiraBoca === 'nao' ? 'selected' : ''}>Não</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Range os dentes?</label>
+                                <select id="anamneseBruxismo" class="form-control">
+                                    <option value="">Selecione</option>
+                                    <option value="sim" ${anamnese.bruxismo === 'sim' ? 'selected' : ''}>Sim</option>
+                                    <option value="nao" ${anamnese.bruxismo === 'nao' ? 'selected' : ''}>Não</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Pesadelos?</label>
+                                <select id="anamnesePesadelos" class="form-control">
+                                    <option value="">Selecione</option>
+                                    <option value="sim" ${anamnese.pesadelos === 'sim' ? 'selected' : ''}>Sim</option>
+                                    <option value="nao" ${anamnese.pesadelos === 'nao' ? 'selected' : ''}>Não</option>
+                                </select>
                             </div>
                         </div>
                     </div>
@@ -1420,32 +1661,98 @@
                         <div class="grid-2">
                             <div class="form-group">
                                 <label class="form-label">Frequenta escola?</label>
-                                <select id="frequentaEscola" class="form-control">
+                                <select id="anamneseFrequentaEscola" class="form-control">
                                     <option value="">Selecione</option>
-                                    <option value="sim" ${pacienteSelecionado.anamnese.frequentaEscola === 'sim' ? 'selected' : ''}>Sim</option>
-                                    <option value="nao" ${pacienteSelecionado.anamnese.frequentaEscola === 'nao' ? 'selected' : ''}>Não</option>
+                                    <option value="sim" ${anamnese.frequentaEscola === 'sim' ? 'selected' : ''}>Sim</option>
+                                    <option value="nao" ${anamnese.frequentaEscola === 'nao' ? 'selected' : ''}>Não</option>
                                 </select>
                             </div>
                             <div class="form-group">
                                 <label class="form-label">Série/Ano</label>
-                                <input type="text" id="serieInput" class="form-control" value="${pacienteSelecionado.anamnese.serie || ''}">
+                                <input type="text" id="anamneseSerie" class="form-control" value="${anamnese.serieEscolar || ''}">
                             </div>
                             <div class="form-group">
-                                <label class="form-label">Dificuldades de aprendizagem</label>
-                                <input type="text" id="dificuldadesEscolares" class="form-control" value="${pacienteSelecionado.anamnese.dificuldadesEscolares || ''}">
+                                <label class="form-label">Nome da escola</label>
+                                <input type="text" id="anamneseNomeEscola" class="form-control" value="${anamnese.nomeEscola || ''}">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Adaptação escolar</label>
+                                <select id="anamneseAdaptacao" class="form-control">
+                                    <option value="">Selecione</option>
+                                    <option value="boa" ${anamnese.adaptacaoEscolar === 'boa' ? 'selected' : ''}>Boa</option>
+                                    <option value="regular" ${anamnese.adaptacaoEscolar === 'regular' ? 'selected' : ''}>Regular</option>
+                                    <option value="dificil" ${anamnese.adaptacaoEscolar === 'dificil' ? 'selected' : ''}>Difícil</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Rendimento escolar</label>
+                                <select id="anamneseRendimento" class="form-control">
+                                    <option value="">Selecione</option>
+                                    <option value="acima" ${anamnese.rendimentoEscolar === 'acima' ? 'selected' : ''}>Acima da média</option>
+                                    <option value="media" ${anamnese.rendimentoEscolar === 'media' ? 'selected' : ''}>Na média</option>
+                                    <option value="abaixo" ${anamnese.rendimentoEscolar === 'abaixo' ? 'selected' : ''}>Abaixo da média</option>
+                                </select>
                             </div>
                             <div class="form-group">
                                 <label class="form-label">Relacionamento com colegas</label>
-                                <input type="text" id="relacionamentoInput" class="form-control" value="${pacienteSelecionado.anamnese.relacionamento || ''}">
+                                <select id="anamneseRelacionamento" class="form-control">
+                                    <option value="">Selecione</option>
+                                    <option value="bom" ${anamnese.relacionamentoColegas === 'bom' ? 'selected' : ''}>Bom</option>
+                                    <option value="regular" ${anamnese.relacionamentoColegas === 'regular' ? 'selected' : ''}>Regular</option>
+                                    <option value="dificil" ${anamnese.relacionamentoColegas === 'dificil' ? 'selected' : ''}>Difícil</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Dificuldades escolares</label>
+                                <input type="text" id="anamneseDificuldadesEscolares" class="form-control" value="${anamnese.dificuldadesEscolares || ''}">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Apoio pedagógico</label>
+                                <input type="text" id="anamneseApoio" class="form-control" value="${anamnese.apoioPedagogico || ''}">
                             </div>
                         </div>
                     </div>
                     
-                    <!-- Observações -->
+                    <!-- História Familiar -->
+                    <div id="tabFamiliar" class="anamnese-section hidden">
+                        <h4>História Familiar</h4>
+                        <div class="grid-2">
+                            <div class="form-group">
+                                <label class="form-label">Composição familiar</label>
+                                <input type="text" id="anamneseComposicao" class="form-control" placeholder="Ex: Pai, mãe e 2 irmãos" value="${anamnese.composicaoFamiliar || ''}">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Quem mora com a criança?</label>
+                                <input type="text" id="anamneseQuemMora" class="form-control" value="${anamnese.quemMoraCom || ''}">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Língua falada em casa</label>
+                                <input type="text" id="anamneseLingua" class="form-control" placeholder="Ex: Português" value="${anamnese.linguaFalada || ''}">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Casos semelhantes na família</label>
+                                <textarea id="anamneseCasosFamiliares" class="form-control" rows="2">${anamnese.casosSemelhantesFamilia || ''}</textarea>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Observações sobre a família</label>
+                                <textarea id="anamneseObsFamilia" class="form-control" rows="2">${anamnese.observacoesFamilia || ''}</textarea>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Observações Gerais -->
                     <div id="tabObs" class="anamnese-section hidden">
                         <h4>Observações Gerais</h4>
                         <div class="form-group">
-                            <textarea id="obsInput" class="form-control" rows="5">${pacienteSelecionado.anamnese.observacoes || ''}</textarea>
+                            <textarea id="anamneseObsGerais" class="form-control" rows="5">${anamnese.observacoesGerais || ''}</textarea>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Data do preenchimento</label>
+                            <input type="date" id="anamneseDataPreenchimento" class="form-control" value="${anamnese.dataPreenchimento || new Date().toISOString().split('T')[0]}">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Preenchido por</label>
+                            <input type="text" id="anamnesePreenchidoPor" class="form-control" value="${anamnese.preenchidoPor || ''}">
                         </div>
                     </div>
                     
@@ -1464,12 +1771,14 @@
                 el.classList.add('hidden');
             });
             
+            if (tab === 'identificacao') document.getElementById('tabIdentificacao')?.classList.remove('hidden');
             if (tab === 'queixa') document.getElementById('tabQueixa')?.classList.remove('hidden');
             if (tab === 'gestacional') document.getElementById('tabGestacional')?.classList.remove('hidden');
             if (tab === 'desenvolvimento') document.getElementById('tabDesenvolvimento')?.classList.remove('hidden');
             if (tab === 'alimentacao') document.getElementById('tabAlimentacao')?.classList.remove('hidden');
             if (tab === 'saude') document.getElementById('tabSaude')?.classList.remove('hidden');
             if (tab === 'escolar') document.getElementById('tabEscolar')?.classList.remove('hidden');
+            if (tab === 'familiar') document.getElementById('tabFamiliar')?.classList.remove('hidden');
             if (tab === 'obs') document.getElementById('tabObs')?.classList.remove('hidden');
             
             document.querySelectorAll('.anamnese-tab').forEach(el => {
@@ -1482,32 +1791,104 @@
             if (!pacienteSelecionado) return;
             
             pacienteSelecionado.anamnese = {
-                queixa: document.getElementById('queixaInput')?.value || '',
-                inicioQueixa: document.getElementById('inicioQueixa')?.value || '',
-                gestacao: document.getElementById('gestacaoInput')?.value || '',
-                parto: document.getElementById('partoInput')?.value || '',
-                nascimento: document.getElementById('nascimentoInput')?.value || '',
-                cabeca: document.getElementById('cabecaInput')?.value || '',
-                sentou: document.getElementById('sentouInput')?.value || '',
-                engatinhou: document.getElementById('engatinhouInput')?.value || '',
-                andou: document.getElementById('andouInput')?.value || '',
-                palavras: document.getElementById('palavrasInput')?.value || '',
-                frases: document.getElementById('frasesInput')?.value || '',
-                aleitamento: document.getElementById('aleitamentoInput')?.value || '',
-                tempoAleitamento: document.getElementById('tempoAleitamento')?.value || '',
-                introducao: document.getElementById('introducaoInput')?.value || '',
-                dificuldadesAlimentares: document.getElementById('dificuldadesAlimentares')?.value || '',
-                doencas: document.getElementById('doencasInput')?.value || '',
-                cirurgias: document.getElementById('cirurgiasInput')?.value || '',
-                alergias: document.getElementById('alergiasInput')?.value || '',
-                medicamentos: document.getElementById('medicamentosInput')?.value || '',
-                audicaoVisao: document.getElementById('audicaoVisaoInput')?.value || '',
-                frequentaEscola: document.getElementById('frequentaEscola')?.value || '',
-                serie: document.getElementById('serieInput')?.value || '',
-                dificuldadesEscolares: document.getElementById('dificuldadesEscolares')?.value || '',
-                relacionamento: document.getElementById('relacionamentoInput')?.value || '',
-                observacoes: document.getElementById('obsInput')?.value || ''
+                // Identificação
+                sexo: document.getElementById('anamneseSexo')?.value || '',
+                naturalidade: document.getElementById('anamneseNaturalidade')?.value || '',
+                endereco: document.getElementById('anamneseEndereco')?.value || '',
+                email: document.getElementById('anamneseEmail')?.value || '',
+                responsavel: document.getElementById('anamneseResponsavel')?.value || '',
+                parentesco: document.getElementById('anamneseParentesco')?.value || '',
+                telefoneResponsavel: document.getElementById('anamneseTelResponsavel')?.value || '',
+                
+                // Queixa
+                queixaPrincipal: document.getElementById('anamneseQueixa')?.value || '',
+                inicioQueixa: document.getElementById('anamneseInicioQueixa')?.value || '',
+                quemObservou: document.getElementById('anamneseQuemObservou')?.value || '',
+                evolucaoQueixa: document.getElementById('anamneseEvolucao')?.value || '',
+                tratamentosAnteriores: document.getElementById('anamneseTratamentos')?.value || '',
+                
+                // Gestacional
+                gestacaoDesejada: document.getElementById('anamneseGestacaoDesejada')?.value || '',
+                intercorrenciasGestacao: document.getElementById('anamneseIntercorrencias')?.value || '',
+                medicamentosGestacao: document.getElementById('anamneseMedicamentosGestacao')?.value || '',
+                tipoParto: document.getElementById('anamneseTipoParto')?.value || '',
+                localParto: document.getElementById('anamneseLocalParto')?.value || '',
+                tempoGestacao: document.getElementById('anamneseTempoGestacao')?.value || '',
+                pesoNascimento: document.getElementById('anamnesePeso')?.value || '',
+                comprimentoNascimento: document.getElementById('anamneseComprimento')?.value || '',
+                apgar: document.getElementById('anamneseApgar')?.value || '',
+                chorouNascimento: document.getElementById('anamneseChorou')?.value || '',
+                precisouOxigenio: document.getElementById('anamneseOxigenio')?.value || '',
+                ictericia: document.getElementById('anamneseIctericia')?.value || '',
+                incubadora: document.getElementById('anamneseIncubadora')?.value || '',
+                altaComDias: document.getElementById('anamneseAlta')?.value || '',
+                
+                // Desenvolvimento
+                sustentouCabeca: document.getElementById('anamneseCabeca')?.value || '',
+                sentou: document.getElementById('anamneseSentou')?.value || '',
+                engatinhou: document.getElementById('anamneseEngatinhou')?.value || '',
+                andou: document.getElementById('anamneseAndou')?.value || '',
+                primeirasPalavras: document.getElementById('anamnesePalavras')?.value || '',
+                formouFrases: document.getElementById('anamneseFrases')?.value || '',
+                controleEsfincter: document.getElementById('anamneseEsfincter')?.value || '',
+                
+                // Alimentação
+                aleitamentoMaterno: document.getElementById('anamneseAleitamento')?.value || '',
+                tempoAleitamento: document.getElementById('anamneseTempoAleitamento')?.value || '',
+                introducaoAlimentar: document.getElementById('anamneseIntroducao')?.value || '',
+                dificuldadesAlimentares: document.getElementById('anamneseDificuldadesAlim')?.value || '',
+                aceitaVariedade: document.getElementById('anamneseVariedade')?.value || '',
+                mastigacao: document.getElementById('anamneseMastigacao')?.value || '',
+                degluticao: document.getElementById('anamneseDegluticao')?.value || '',
+                usaMamadeira: document.getElementById('anamneseMamadeira')?.value || '',
+                usaChupeta: document.getElementById('anamneseChupeta')?.value || '',
+                
+                // Saúde
+                doencasInfancia: document.getElementById('anamneseDoencas')?.value || '',
+                cirurgias: document.getElementById('anamneseCirurgias')?.value || '',
+                alergias: document.getElementById('anamneseAlergias')?.value || '',
+                medicamentosContinuos: document.getElementById('anamneseMedicamentos')?.value || '',
+                internacoes: document.getElementById('anamneseInternacoes')?.value || '',
+                acompanhamentoMedico: document.getElementById('anamneseAcompanhamento')?.value || '',
+                triagemAuditiva: document.getElementById('anamneseTriagemAuditiva')?.value || '',
+                otitesFrequentes: document.getElementById('anamneseOtites')?.value || '',
+                cirurgiasOuvido: document.getElementById('anamneseCirurgiasOuvido')?.value || '',
+                reacaoSons: document.getElementById('anamneseReacaoSons')?.value || '',
+                dificuldadesVisuais: document.getElementById('anamneseDificuldadesVisuais')?.value || '',
+                usaOculos: document.getElementById('anamneseOculos')?.value || '',
+                estrabismo: document.getElementById('anamneseEstrabismo')?.value || '',
+                dormeBem: document.getElementById('anamneseSono')?.value || '',
+                horasSono: document.getElementById('anamneseHorasSono')?.value || '',
+                ronca: document.getElementById('anamneseRonca')?.value || '',
+                respiraBoca: document.getElementById('anamneseRespiraBoca')?.value || '',
+                bruxismo: document.getElementById('anamneseBruxismo')?.value || '',
+                pesadelos: document.getElementById('anamnesePesadelos')?.value || '',
+                
+                // Escolar
+                frequentaEscola: document.getElementById('anamneseFrequentaEscola')?.value || '',
+                serieEscolar: document.getElementById('anamneseSerie')?.value || '',
+                nomeEscola: document.getElementById('anamneseNomeEscola')?.value || '',
+                adaptacaoEscolar: document.getElementById('anamneseAdaptacao')?.value || '',
+                rendimentoEscolar: document.getElementById('anamneseRendimento')?.value || '',
+                relacionamentoColegas: document.getElementById('anamneseRelacionamento')?.value || '',
+                dificuldadesEscolares: document.getElementById('anamneseDificuldadesEscolares')?.value || '',
+                apoioPedagogico: document.getElementById('anamneseApoio')?.value || '',
+                
+                // Familiar
+                composicaoFamiliar: document.getElementById('anamneseComposicao')?.value || '',
+                quemMoraCom: document.getElementById('anamneseQuemMora')?.value || '',
+                linguaFalada: document.getElementById('anamneseLingua')?.value || '',
+                casosSemelhantesFamilia: document.getElementById('anamneseCasosFamiliares')?.value || '',
+                observacoesFamilia: document.getElementById('anamneseObsFamilia')?.value || '',
+                
+                // Gerais
+                observacoesGerais: document.getElementById('anamneseObsGerais')?.value || '',
+                dataPreenchimento: document.getElementById('anamneseDataPreenchimento')?.value || '',
+                preenchidoPor: document.getElementById('anamnesePreenchidoPor')?.value || ''
             };
+            
+            pacienteSelecionado.nascimento = document.getElementById('anamneseNascimento')?.value || pacienteSelecionado.nascimento;
+            pacienteSelecionado.telefone = document.getElementById('anamneseTelefone')?.value || pacienteSelecionado.telefone;
             
             salvarDados();
             fecharModal();
@@ -1518,12 +1899,11 @@
         // AGENDA
         // ============================================
         function renderizarAgenda() {
-            const dias = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
-            const horarios = ['08:00', '09:00', '10:00', '11:00', '14:00', '15:00', '16:00', '17:00'];
-            
             let tabela = '<table><thead><tr><th>Horário</th>';
-            dias.forEach(dia => tabela += `<th>${dia}</th>`);
+            DIAS.forEach(dia => tabela += `<th>${dia}</th>`);
             tabela += '</tr></thead><tbody>';
+            
+            const horarios = agenda.horarios || DEFAULT_TIMES;
             
             horarios.forEach(hora => {
                 tabela += `<tr><td><strong>${hora}</strong></td>`;
@@ -1533,9 +1913,11 @@
                     
                     if (agendamento) {
                         const paciente = pacientes.find(p => p.id === agendamento.pacienteId);
+                        const classe = agendamento.convenio === 'cassems' ? 'slot-cassems' : 
+                                      agendamento.convenio === 'particular' ? 'slot-particular' : 'slot';
                         tabela += `
                             <td onclick="agendarHorario(${dia}, '${hora}')">
-                                <div class="slot slot-${agendamento.convenio || 'particular'}">
+                                <div class="slot ${classe}">
                                     <strong>${paciente?.nome || '?'}</strong>
                                 </div>
                             </td>
@@ -1573,9 +1955,10 @@
                         ${tabela}
                     </div>
                     
-                    <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                    <div style="display: flex; gap: 1rem; margin-top: 1rem; flex-wrap: wrap;">
                         <span class="pill pill-success">Cassems</span>
                         <span class="pill pill-warning">Particular</span>
+                        <span class="pill">Unimed/Outros</span>
                         <span class="pill">Vago</span>
                     </div>
                 </div>
@@ -1586,10 +1969,10 @@
             const horario = document.getElementById('novoHorario')?.value;
             if (!horario) return;
             
-            if (!agenda.times) agenda.times = [];
-            if (!agenda.times.includes(horario)) {
-                agenda.times.push(horario);
-                agenda.times.sort();
+            if (!agenda.horarios) agenda.horarios = DEFAULT_TIMES;
+            if (!agenda.horarios.includes(horario)) {
+                agenda.horarios.push(horario);
+                agenda.horarios.sort();
                 salvarDados();
                 mudarAba('agenda');
             }
@@ -1608,10 +1991,15 @@
                 return;
             }
             
-            const lista = pacientes.map((p, i) => `${i+1} - ${p.nome}`).join('\n');
+            if (pacientes.length === 0) {
+                alert('Cadastre um paciente primeiro');
+                return;
+            }
+            
+            const listaPacientes = pacientes.map((p, i) => `${i+1} - ${p.nome}`).join('\n');
             const escolha = prompt(
-                `Agendar em ${DAYS[dia]} às ${hora}\n\n` +
-                `Digite o número do paciente:\n${lista}\n\n` +
+                `Agendar em ${DIAS[dia]} às ${hora}\n\n` +
+                `Digite o número do paciente:\n${listaPacientes}\n\n` +
                 `Ou 0 para cancelar`
             );
             
@@ -1634,7 +2022,7 @@
         // ============================================
         function renderizarRelatorios() {
             const mes = new Date().toISOString().slice(0, 7);
-            const sessoesMes = sessoes.filter(s => s.data.startsWith(mes));
+            const sessoesMes = sessoes.filter(s => s.data && s.data.startsWith(mes));
             
             const realizadas = sessoesMes.filter(s => s.status === 'realizou');
             const faturamento = realizadas.filter(s => s.pago).reduce((sum, s) => sum + (Number(s.valor) || 0), 0);
@@ -1642,6 +2030,7 @@
             
             const tokensEnviados = Object.values(tokens).filter(t => t.status === 'enviado').length;
             const tokensPendentes = Object.values(tokens).filter(t => t.status === 'pendente').length;
+            const tokensProblema = Object.values(tokens).filter(t => t.status === 'problema').length;
 
             return `
                 <div class="grid-2">
@@ -1658,15 +2047,30 @@
                     </div>
                     
                     <div class="card-mini">
-                        <div class="stat-label">Tokens Cassems</div>
-                        <div class="stat-value" style="font-size: 2rem;">${tokensEnviados}</div>
-                        <div>Pendentes: ${tokensPendentes}</div>
-                    </div>
-                    
-                    <div class="card-mini">
                         <div class="stat-label">Pacientes</div>
                         <div class="stat-value" style="font-size: 2rem;">${pacientes.length}</div>
-                        <div>Ativos</div>
+                        <div>Cadastrados</div>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h3 class="card-title">
+                        <i class="fas fa-ticket-alt"></i>
+                        Controle de Tokens Cassems
+                    </h3>
+                    <div class="grid-3">
+                        <div class="card-mini">
+                            <div class="stat-label">Enviados</div>
+                            <div class="stat-value" style="font-size: 1.5rem; color: var(--success);">${tokensEnviados}</div>
+                        </div>
+                        <div class="card-mini">
+                            <div class="stat-label">Pendentes</div>
+                            <div class="stat-value" style="font-size: 1.5rem; color: var(--warning);">${tokensPendentes}</div>
+                        </div>
+                        <div class="card-mini">
+                            <div class="stat-label">Problema</div>
+                            <div class="stat-value" style="font-size: 1.5rem; color: var(--error);">${tokensProblema}</div>
+                        </div>
                     </div>
                 </div>
                 
@@ -1698,7 +2102,7 @@
             devedores.sort((a, b) => b.debito - a.debito);
             
             if (devedores.length === 0) {
-                return '<div class="list-item">Nenhum devedor</div>';
+                return '<div class="list-item">Nenhum paciente com débito</div>';
             }
             
             return devedores.map(d => `
@@ -1743,10 +2147,15 @@
             
             if (aba === 'pacientes') {
                 renderizarListaPacientes();
+                document.getElementById('pastaPaciente')?.classList.add('hidden');
             }
             
             if (aba === 'agenda') {
                 document.getElementById('viewAgenda').innerHTML = renderizarAgenda();
+            }
+            
+            if (aba === 'relatorios') {
+                document.getElementById('viewRelatorios').innerHTML = renderizarRelatorios();
             }
         }
 
@@ -1759,7 +2168,8 @@
                 sessoes,
                 tokens,
                 agenda,
-                data: new Date().toISOString()
+                data: new Date().toISOString(),
+                versao: '1.0'
             };
             
             const blob = new Blob([JSON.stringify(dados, null, 2)], { type: 'application/json' });
