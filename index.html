@@ -780,6 +780,54 @@
             margin: 1.5rem 0;
         }
 
+        /* ===== ANAMNESE TABS ===== */
+        .anamnese-tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            overflow-x: auto;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .anamnese-tab {
+            padding: 0.75rem 1.25rem;
+            background: var(--hover-bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-full);
+            color: var(--text-secondary);
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .anamnese-tab:hover {
+            border-color: var(--primary-500);
+            color: var(--primary-500);
+        }
+
+        .anamnese-tab.active {
+            background: var(--primary-500);
+            color: white;
+            border-color: var(--primary-500);
+        }
+
+        .anamnese-section {
+            display: block;
+            margin-bottom: 2rem;
+        }
+
+        .anamnese-section.hidden {
+            display: none;
+        }
+
+        .anamnese-section h4 {
+            color: var(--primary-500);
+            margin-bottom: 1.5rem;
+            font-size: 1.1rem;
+        }
+
         /* ===== AGENDA SLOTS ===== */
         .schedWrap {
             overflow-x: auto;
@@ -902,7 +950,7 @@
             border: 1px solid var(--border);
             border-radius: var(--radius-2xl);
             padding: 2rem;
-            max-width: 600px;
+            max-width: 800px;
             width: 100%;
             max-height: 90vh;
             overflow-y: auto;
@@ -1276,6 +1324,116 @@
         const CASSEMS_DEFAULT_VALUE = 26;
 
         // ============================================
+        // TEMPLATE ANAMNESE COMPLETA
+        // ============================================
+        const ANAMNESE_TEMPLATE = {
+            // Identificação
+            nome: '',
+            dataNascimento: '',
+            idade: '',
+            sexo: '',
+            naturalidade: '',
+            endereco: '',
+            telefone: '',
+            email: '',
+            
+            // Responsável
+            responsavel: '',
+            parentesco: '',
+            telefoneResponsavel: '',
+            
+            // Queixa Principal
+            queixaPrincipal: '',
+            inicioQueixa: '',
+            quemObservou: '',
+            evolucaoQueixa: '',
+            tratamentosAnteriores: '',
+            
+            // História Gestacional
+            gestacaoDesejada: '',
+            intercorrenciasGestacao: '',
+            medicamentosGestacao: '',
+            tipoParto: '',
+            localParto: '',
+            tempoGestacao: '',
+            pesoNascimento: '',
+            comprimentoNascimento: '',
+            apgar: '',
+            chorouNascimento: '',
+            precisouOxigenio: '',
+            ictericia: '',
+            incubadora: '',
+            altaComDias: '',
+            
+            // Desenvolvimento
+            sustentouCabeca: '',
+            sentou: '',
+            engatinhou: '',
+            andou: '',
+            primeirasPalavras: '',
+            formouFrases: '',
+            controleEsfincter: '',
+            
+            // Alimentação
+            aleitamentoMaterno: '',
+            tempoAleitamento: '',
+            introducaoAlimentar: '',
+            dificuldadesAlimentares: '',
+            aceitaVariedade: '',
+            mastigacao: '',
+            degluticao: '',
+            usaMamadeira: '',
+            usaChupeta: '',
+            
+            // Saúde
+            doencasInfancia: '',
+            cirurgias: '',
+            alergias: '',
+            medicamentosContinuos: '',
+            internacoes: '',
+            acompanhamentoMedico: '',
+            
+            // Audição e Visão
+            triagemAuditiva: '',
+            otitesFrequentes: '',
+            cirurgiasOuvido: '',
+            reacaoSons: '',
+            dificuldadesVisuais: '',
+            usaOculos: '',
+            estrabismo: '',
+            
+            // Sono
+            dormeBem: '',
+            horasSono: '',
+            ronca: '',
+            respiraBoca: '',
+            bruxismo: '',
+            pesadelos: '',
+            
+            // Escolaridade
+            frequentaEscola: '',
+            serieEscolar: '',
+            nomeEscola: '',
+            adaptacaoEscolar: '',
+            rendimentoEscolar: '',
+            relacionamentoColegas: '',
+            dificuldadesEscolares: '',
+            apoioPedagogico: '',
+            
+            // História Familiar
+            composicaoFamiliar: '',
+            quemMoraCom: '',
+            linguaFalada: '',
+            casosSemelhantesFamilia: '',
+            observacoesFamilia: '',
+            
+            // Observações Gerais
+            observacoesGerais: '',
+            dataPreenchimento: '',
+            preenchidoPor: ''
+        };
+
+        // ============================================
         // VARIÁVEIS GLOBAIS
         // ============================================
         let openedPatientId = null;
@@ -1361,6 +1519,18 @@
                 alertTimeout = setTimeout(() => {
                     if (alert.parentNode) alert.remove();
                 }, duration);
+            },
+
+            calculateAge(birthDate) {
+                if (!birthDate) return '';
+                const today = new Date();
+                const birth = new Date(birthDate);
+                let age = today.getFullYear() - birth.getFullYear();
+                const m = today.getMonth() - birth.getMonth();
+                if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
+                    age--;
+                }
+                return age + ' anos';
             }
         };
 
@@ -1489,7 +1659,7 @@
         };
 
         // ============================================
-        // PATIENTS MODEL
+        // PATIENTS MODEL (COM ANAMNESE COMPLETA)
         // ============================================
         const Patients = {
             getAll() {
@@ -1505,9 +1675,12 @@
                 const newPatient = {
                     id: Utils.uid(),
                     ...data,
-                    anamnese: { queixa: '', historico: '', obs: '' },
+                    anamnese: JSON.parse(JSON.stringify(ANAMNESE_TEMPLATE)),
                     createdAt: new Date().toISOString()
                 };
+                // Preencher dados básicos
+                newPatient.anamnese.nome = data.name || '';
+                newPatient.anamnese.telefone = data.phone || '';
                 patients.push(newPatient);
                 this.save(patients);
                 return newPatient;
@@ -1541,11 +1714,11 @@
 
             getAnamnese(id) {
                 const p = this.getById(id);
-                return p?.anamnese || { queixa: '', historico: '', obs: '' };
+                return p?.anamnese || JSON.parse(JSON.stringify(ANAMNESE_TEMPLATE));
             },
 
-            saveAnamnese(id, data) {
-                return this.update(id, { anamnese: data });
+            saveAnamnese(id, anamneseData) {
+                return this.update(id, { anamnese: anamneseData });
             },
 
             isCassems(id) {
@@ -1970,15 +2143,13 @@
         };
 
         // ============================================
-        // LOCAL AI SERVICE (100% FUNCIONAL - SEM API)
+        // LOCAL AI SERVICE
         // ============================================
         const AIService = {
-            // IA local - não precisa de internet
             generateSuggestion(patientId, currentText = '') {
                 const patient = Patients.getById(patientId);
                 const evolucoes = Evolucoes.getByPatient(patientId);
                 
-                // Templates baseados no tipo de paciente
                 const templates = {
                     cassems: [
                         "Paciente apresentou boa evolução na sessão de hoje, com melhora na articulação dos fonemas /r/ e /l/. Participou ativamente das atividades lúdicas propostas. Manter frequência das sessões e reforçar exercícios em casa.",
@@ -2002,13 +2173,11 @@
                     ]
                 };
 
-                // Escolher template baseado no tipo de paciente
                 let templateList = templates.default;
                 if (patient?.serviceType === 'cassems') templateList = templates.cassems;
                 else if (patient?.serviceType === 'particular') templateList = templates.particular;
                 else if (patient?.serviceType === 'unimed') templateList = templates.unimed;
 
-                // Se tem texto atual, criar variações
                 if (currentText) {
                     return [
                         currentText + " " + templateList[0].split('.')[0] + ".",
@@ -2025,18 +2194,14 @@
             },
 
             improveText(text) {
-                // Melhorar o texto (capitalizar, pontuar, etc)
                 if (!text) return text;
                 
-                // Capitalizar primeira letra
                 text = text.charAt(0).toUpperCase() + text.slice(1);
                 
-                // Garantir ponto final
                 if (!text.endsWith('.') && !text.endsWith('!') && !text.endsWith('?')) {
                     text += '.';
                 }
                 
-                // Adicionar detalhes profissionais se for muito curto
                 if (text.length < 50) {
                     text += " Paciente colaborou bem durante a sessão, realizando todas as atividades propostas.";
                 }
@@ -2047,11 +2212,88 @@
             summarizeText(text) {
                 if (!text) return text;
                 
-                // Pegar as primeiras 2 frases
                 const sentences = text.split(/[.!?]+/).filter(s => s.trim());
                 if (sentences.length <= 2) return text;
                 
                 return sentences.slice(0, 2).join('. ') + '.';
+            }
+        };
+
+        // ============================================
+        // ANAMNESE UI
+        // ============================================
+        const AnamneseUI = {
+            currentTab: 'identificacao',
+
+            switchTab(tabId) {
+                document.querySelectorAll('.anamnese-section').forEach(tab => {
+                    tab.classList.add('hidden');
+                });
+                
+                document.querySelectorAll('.anamnese-tab').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                
+                const tabElement = document.getElementById(`anamnese-tab-${tabId}`);
+                if (tabElement) {
+                    tabElement.classList.remove('hidden');
+                }
+                
+                const activeBtn = document.querySelector(`.anamnese-tab[data-tab="${tabId}"]`);
+                if (activeBtn) {
+                    activeBtn.classList.add('active');
+                }
+                
+                this.currentTab = tabId;
+            },
+
+            loadFromPatient(patientId) {
+                const anamnese = Patients.getAnamnese(patientId);
+                
+                // Função para preencher campos recursivamente
+                const fillFields = (obj, prefix = '') => {
+                    Object.keys(obj).forEach(key => {
+                        const value = obj[key];
+                        const fieldId = `anamnese_${prefix}${key}`;
+                        
+                        if (value && typeof value === 'object' && !Array.isArray(value)) {
+                            fillFields(value, `${prefix}${key}_`);
+                        } else {
+                            const input = document.getElementById(fieldId);
+                            if (input) {
+                                input.value = value || '';
+                            }
+                        }
+                    });
+                };
+                
+                fillFields(anamnese);
+            },
+
+            saveFromForm(patientId) {
+                const anamnese = JSON.parse(JSON.stringify(ANAMNESE_TEMPLATE));
+                
+                const collectFields = (obj, prefix = '') => {
+                    Object.keys(obj).forEach(key => {
+                        const value = obj[key];
+                        const fieldId = `anamnese_${prefix}${key}`;
+                        
+                        if (value && typeof value === 'object' && !Array.isArray(value)) {
+                            collectFields(value, `${prefix}${key}_`);
+                        } else {
+                            const input = document.getElementById(fieldId);
+                            if (input) {
+                                obj[key] = input.value;
+                            }
+                        }
+                    });
+                };
+                
+                collectFields(anamnese);
+                
+                anamnese.dataPreenchimento = Utils.todayISO();
+                
+                return Patients.saveAnamnese(patientId, anamnese);
             }
         };
 
@@ -2640,7 +2882,7 @@
                 
                 if (actionButtons) {
                     let buttonsHtml = `
-                        <button class="btn btn-sm btn-secondary" onclick="PatientActions.openAnamnese()">
+                        <button class="btn btn-sm btn-secondary" onclick="AnamneseActions.openModal()">
                             <i class="fas fa-notes-medical"></i> Anamnese
                         </button>
                         <button class="btn btn-sm btn-secondary" onclick="PatientActions.openWhatsApp()">
@@ -2850,161 +3092,33 @@
             }
         };
 
-        const ScheduleView = {
-            render() {
-                Tokens.verificarZerarMensal();
+        // ============================================
+        // ANAMNESE ACTIONS
+        // ============================================
+        const AnamneseActions = {
+            openModal() {
+                if (!openedPatientId) return;
                 
-                const schedule = Schedule.get();
-                const times = schedule.times || [];
-                const patients = Patients.getAll();
-                const sessions = Sessions.getAll();
-                
-                const stats = {};
-                sessions.forEach(s => {
-                    if (!stats[s.patientId]) {
-                        stats[s.patientId] = { realizadas: 0, faltas: 0, total: 0 };
-                    }
-                    if (s.did === 'realizou') stats[s.patientId].realizadas++;
-                    else if (s.did === 'nao') stats[s.patientId].faltas++;
-                    stats[s.patientId].total++;
-                });
-
-                this.renderTable(times, patients, stats);
+                AnamneseUI.loadFromPatient(openedPatientId);
+                AnamneseUI.switchTab('identificacao');
+                $('anamneseModal').classList.remove('hidden');
             },
 
-            renderTable(times, patients, stats) {
-                const recurring = Schedule.getRecurring();
-                const table = $('schedTable');
-                if (!table) return;
+            closeModal() {
+                $('anamneseModal').classList.add('hidden');
+            },
 
-                let html = '<thead><tr><th class="timeCell">Horário</th>';
-                DAYS.forEach(day => html += `<th>${day}</th>`);
-                html += '</tr></thead><tbody>';
-
-                for (const time of times) {
-                    html += `<tr><td class="timeCell">${Utils.escapeHtml(time)}</td>`;
-
-                    for (let day = 0; day < 7; day++) {
-                        const key = Utils.recurKey(day, time);
-                        const entry = recurring[key];
-                        
-                        if (entry) {
-                            const patient = patients.find(p => p.id === entry.patientId);
-                            const patientStats = stats[patient?.id] || { realizadas: 0, faltas: 0, total: 0 };
-                            html += Components.scheduleSlot(day, time, entry, patient, patientStats);
-                        } else {
-                            html += Components.scheduleSlot(day, time, null);
-                        }
-                    }
-                    html += '</tr>';
+            save() {
+                if (!openedPatientId) return;
+                
+                if (AnamneseUI.saveFromForm(openedPatientId)) {
+                    this.closeModal();
+                    Utils.showAlert('Anamnese salva com sucesso!', 'success');
                 }
-
-                html += '</tbody>';
-                table.innerHTML = html;
-
-                document.querySelectorAll('td[data-day]').forEach(td => {
-                    td.addEventListener('click', (e) => {
-                        const day = td.dataset.day;
-                        const time = td.dataset.time;
-                        ScheduleActions.handleSlotClick(parseInt(day), time);
-                    });
-                });
             },
 
-            filterHoje() {
-                const hoje = new Date().getDay();
-                this.highlightDay(hoje);
-            },
-
-            filterAmanha() {
-                const amanha = (new Date().getDay() + 1) % 7;
-                this.highlightDay(amanha);
-            },
-
-            filterSemana() {
-                document.querySelectorAll('#schedTable tbody tr td:not(.timeCell)').forEach(cell => {
-                    cell.style.background = '';
-                });
-            },
-
-            highlightDay(day) {
-                document.querySelectorAll('#schedTable tbody tr').forEach(row => {
-                    const cells = row.querySelectorAll('td:not(.timeCell)');
-                    cells.forEach((cell, idx) => {
-                        if (idx === day) {
-                            cell.style.background = 'var(--primary-100)';
-                        }
-                    });
-                });
-            }
-        };
-
-        const ReportsView = {
-            generate() {
-                const month = Utils.todayISO().slice(0, 7);
-                
-                this.renderMonthSummary(month);
-                this.renderTokensReport();
-                this.renderDebtors();
-            },
-
-            renderMonthSummary(month) {
-                const stats = Sessions.getMonthStats(month);
-                const patients = Patients.getAll();
-                
-                $('monthSummary').innerHTML = `
-                    <div>Sessões: ${stats.total}</div>
-                    <div>Realizadas: ${stats.realizadas}</div>
-                    <div>Faltas: ${stats.faltas}</div>
-                `;
-                
-                $('absenceRate').innerHTML = stats.total ? `${((stats.faltas / stats.total) * 100).toFixed(1)}%` : '0%';
-                $('revenueStats').innerHTML = `
-                    <div>Faturado: ${Utils.fmtMoney(stats.faturamento)}</div>
-                    <div>A receber: ${Utils.fmtMoney(stats.aReceber)}</div>
-                `;
-                
-                $('activePatients').innerHTML = patients.length.toString();
-            },
-
-            renderTokensReport() {
-                const sessions = Sessions.getAll();
-                const patients = Patients.getAll();
-                const tokens = Tokens.getAll();
-                
-                const sessoesCassems = sessions.filter(s => {
-                    const p = patients.find(pat => pat.id === s.patientId);
-                    return p?.serviceType === 'cassems';
-                });
-
-                const enviados = Tokens.countTotalEnviados();
-                const pendentes = Object.values(tokens).filter(t => t.status === 'pendente').length;
-                const problema = Object.values(tokens).filter(t => t.status === 'problema').length;
-
-                $('totalSessoesCassems').textContent = sessoesCassems.length;
-                $('totalTokensEnviados').textContent = enviados;
-                $('totalTokensPendentes').textContent = pendentes;
-                $('totalTokensProblema').textContent = problema;
-            },
-
-            renderDebtors() {
-                const patients = Patients.getAll();
-                const sessions = Sessions.getAll();
-                
-                const debtors = patients.map(p => {
-                    const debt = sessions.filter(s => s.patientId === p.id && s.paid !== 'pago')
-                        .reduce((sum, s) => sum + (Number(s.value) || 0), 0);
-                    return { name: p.name, debt };
-                }).filter(d => d.debt > 0).sort((a, b) => b.debt - a.debt).slice(0, 5);
-
-                const container = $('topDebtors');
-                if (!container) return;
-                
-                if (debtors.length === 0) {
-                    container.innerHTML = '<div class="muted" style="text-align: center; padding: 2rem;">Nenhum devedor</div>';
-                } else {
-                    container.innerHTML = debtors.map(d => Components.devedorCard(d)).join('');
-                }
+            switchTab(tabId) {
+                AnamneseUI.switchTab(tabId);
             }
         };
 
@@ -3176,29 +3290,6 @@
                 PatientsView.closeFolder();
                 this.refreshAll();
                 Utils.showAlert('Paciente excluído!', 'success');
-            },
-
-            openAnamnese() {
-                const p = Patients.getById(openedPatientId);
-                if (p) {
-                    $('aQueixa').value = p.anamnese?.queixa || '';
-                    $('aHistorico').value = p.anamnese?.historico || '';
-                    $('aObs').value = p.anamnese?.obs || '';
-                    $('anamneseModal').classList.remove('hidden');
-                }
-            },
-
-            saveAnamnese() {
-                const anamnese = {
-                    queixa: $('aQueixa')?.value || '',
-                    historico: $('aHistorico')?.value || '',
-                    obs: $('aObs')?.value || ''
-                };
-                
-                if (Patients.saveAnamnese(openedPatientId, anamnese)) {
-                    $('anamneseModal').classList.add('hidden');
-                    Utils.showAlert('Anamnese salva!', 'success');
-                }
             },
 
             openWhatsApp() {
@@ -3486,7 +3577,6 @@
                 
                 container.innerHTML = '<div class="ai-loading"></div> Gerando sugestões...';
                 
-                // Usar IA local (sempre funciona)
                 setTimeout(() => {
                     const suggestions = AIService.suggestEvolucao(openedPatientId);
                     
@@ -3609,26 +3699,173 @@
         // MODALS
         // ============================================
         const Modals = {
-            openAnamnese() { PatientActions.openAnamnese(); },
-            closeAnamnese() { $('anamneseModal').classList.add('hidden'); },
-            saveAnamnese() { PatientActions.saveAnamnese(); },
-
-            openToken(sessionId, patientName, sessionDate) {
-                TokenActions.openModal(sessionId, patientName, sessionDate);
-            },
             closeToken() { $('tokenModal').classList.add('hidden'); currentTokenSessionId = null; },
             saveToken() { TokenActions.saveToken(); },
+            closeManualToken() { $('manualTokenModal').classList.add('hidden'); }
+        };
 
-            openManualToken(patientId) { TokenActions.openManualModal(patientId); },
-            closeManualToken() { $('manualTokenModal').classList.add('hidden'); },
+        // ============================================
+        // SCHEDULE VIEW
+        // ============================================
+        const ScheduleView = {
+            render() {
+                Tokens.verificarZararMensal();
+                
+                const schedule = Schedule.get();
+                const times = schedule.times || [];
+                const patients = Patients.getAll();
+                const sessions = Sessions.getAll();
+                
+                const stats = {};
+                sessions.forEach(s => {
+                    if (!stats[s.patientId]) {
+                        stats[s.patientId] = { realizadas: 0, faltas: 0, total: 0 };
+                    }
+                    if (s.did === 'realizou') stats[s.patientId].realizadas++;
+                    else if (s.did === 'nao') stats[s.patientId].faltas++;
+                    stats[s.patientId].total++;
+                });
 
-            openEvolucao() { EvolucaoActions.openModal(); },
-            closeEvolucao() { EvolucaoActions.closeModal(); },
-            saveEvolucao() { EvolucaoActions.save(); },
+                this.renderTable(times, patients, stats);
+            },
 
-            openEditEvolucao(id) { EvolucaoActions.openEdit(id); },
-            closeEditEvolucao() { EvolucaoActions.closeEditModal(); },
-            saveEditEvolucao() { EvolucaoActions.saveEdit(); }
+            renderTable(times, patients, stats) {
+                const recurring = Schedule.getRecurring();
+                const table = $('schedTable');
+                if (!table) return;
+
+                let html = '<thead><tr><th class="timeCell">Horário</th>';
+                DAYS.forEach(day => html += `<th>${day}</th>`);
+                html += '</tr></thead><tbody>';
+
+                for (const time of times) {
+                    html += `<tr><td class="timeCell">${Utils.escapeHtml(time)}</td>`;
+
+                    for (let day = 0; day < 7; day++) {
+                        const key = Utils.recurKey(day, time);
+                        const entry = recurring[key];
+                        
+                        if (entry) {
+                            const patient = patients.find(p => p.id === entry.patientId);
+                            const patientStats = stats[patient?.id] || { realizadas: 0, faltas: 0, total: 0 };
+                            html += Components.scheduleSlot(day, time, entry, patient, patientStats);
+                        } else {
+                            html += Components.scheduleSlot(day, time, null);
+                        }
+                    }
+                    html += '</tr>';
+                }
+
+                html += '</tbody>';
+                table.innerHTML = html;
+
+                document.querySelectorAll('td[data-day]').forEach(td => {
+                    td.addEventListener('click', (e) => {
+                        const day = td.dataset.day;
+                        const time = td.dataset.time;
+                        ScheduleActions.handleSlotClick(parseInt(day), time);
+                    });
+                });
+            },
+
+            filterHoje() {
+                const hoje = new Date().getDay();
+                this.highlightDay(hoje);
+            },
+
+            filterAmanha() {
+                const amanha = (new Date().getDay() + 1) % 7;
+                this.highlightDay(amanha);
+            },
+
+            filterSemana() {
+                document.querySelectorAll('#schedTable tbody tr td:not(.timeCell)').forEach(cell => {
+                    cell.style.background = '';
+                });
+            },
+
+            highlightDay(day) {
+                document.querySelectorAll('#schedTable tbody tr').forEach(row => {
+                    const cells = row.querySelectorAll('td:not(.timeCell)');
+                    cells.forEach((cell, idx) => {
+                        if (idx === day) {
+                            cell.style.background = 'var(--primary-100)';
+                        }
+                    });
+                });
+            }
+        };
+
+        // ============================================
+        // REPORTS VIEW
+        // ============================================
+        const ReportsView = {
+            generate() {
+                const month = Utils.todayISO().slice(0, 7);
+                
+                this.renderMonthSummary(month);
+                this.renderTokensReport();
+                this.renderDebtors();
+            },
+
+            renderMonthSummary(month) {
+                const stats = Sessions.getMonthStats(month);
+                const patients = Patients.getAll();
+                
+                $('monthSummary').innerHTML = `
+                    <div>Sessões: ${stats.total}</div>
+                    <div>Realizadas: ${stats.realizadas}</div>
+                    <div>Faltas: ${stats.faltas}</div>
+                `;
+                
+                $('absenceRate').innerHTML = stats.total ? `${((stats.faltas / stats.total) * 100).toFixed(1)}%` : '0%';
+                $('revenueStats').innerHTML = `
+                    <div>Faturado: ${Utils.fmtMoney(stats.faturamento)}</div>
+                    <div>A receber: ${Utils.fmtMoney(stats.aReceber)}</div>
+                `;
+                
+                $('activePatients').innerHTML = patients.length.toString();
+            },
+
+            renderTokensReport() {
+                const sessions = Sessions.getAll();
+                const patients = Patients.getAll();
+                const tokens = Tokens.getAll();
+                
+                const sessoesCassems = sessions.filter(s => {
+                    const p = patients.find(pat => pat.id === s.patientId);
+                    return p?.serviceType === 'cassems';
+                });
+
+                const enviados = Tokens.countTotalEnviados();
+                const pendentes = Object.values(tokens).filter(t => t.status === 'pendente').length;
+                const problema = Object.values(tokens).filter(t => t.status === 'problema').length;
+
+                $('totalSessoesCassems').textContent = sessoesCassems.length;
+                $('totalTokensEnviados').textContent = enviados;
+                $('totalTokensPendentes').textContent = pendentes;
+                $('totalTokensProblema').textContent = problema;
+            },
+
+            renderDebtors() {
+                const patients = Patients.getAll();
+                const sessions = Sessions.getAll();
+                
+                const debtors = patients.map(p => {
+                    const debt = sessions.filter(s => s.patientId === p.id && s.paid !== 'pago')
+                        .reduce((sum, s) => sum + (Number(s.value) || 0), 0);
+                    return { name: p.name, debt };
+                }).filter(d => d.debt > 0).sort((a, b) => b.debt - a.debt).slice(0, 5);
+
+                const container = $('topDebtors');
+                if (!container) return;
+                
+                if (debtors.length === 0) {
+                    container.innerHTML = '<div class="muted" style="text-align: center; padding: 2rem;">Nenhum devedor</div>';
+                } else {
+                    container.innerHTML = debtors.map(d => Components.devedorCard(d)).join('');
+                }
+            }
         };
 
         // ============================================
@@ -4410,7 +4647,7 @@
         }
 
         // ============================================
-        // MODAIS HTML
+        // MODAIS HTML (INCLUINDO ANAMNESE COMPLETA)
         // ============================================
         function renderModals() {
             const modals = `
@@ -4427,34 +4664,6 @@
                         <div class="modal-footer">
                             <button class="btn btn-secondary" onclick="$('notificationModal').classList.add('hidden')">Agora não</button>
                             <button class="btn btn-primary" onclick="Notifications.requestPermission()">Ativar</button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- ANAMNESE MODAL -->
-                <div id="anamneseModal" class="modal-overlay hidden">
-                    <div class="modal">
-                        <div class="modal-header">
-                            <h2 class="modal-title">📋 Anamnese</h2>
-                            <button class="modal-close" onclick="Modals.closeAnamnese()">&times;</button>
-                        </div>
-                        <div class="modal-body">
-                            <div class="form-group">
-                                <label class="form-label">Queixa principal</label>
-                                <textarea id="aQueixa" class="form-control" rows="2"></textarea>
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Histórico</label>
-                                <textarea id="aHistorico" class="form-control" rows="2"></textarea>
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Observações</label>
-                                <textarea id="aObs" class="form-control" rows="3"></textarea>
-                            </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button class="btn btn-secondary" onclick="Modals.closeAnamnese()">Cancelar</button>
-                            <button class="btn btn-primary" onclick="Modals.saveAnamnese()">Salvar</button>
                         </div>
                     </div>
                 </div>
@@ -4584,6 +4793,563 @@
                         <div class="modal-footer">
                             <button class="btn btn-secondary" onclick="EvolucaoActions.closeEditModal()">Cancelar</button>
                             <button class="btn btn-primary" onclick="EvolucaoActions.saveEdit()">Salvar</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ANAMNESE COMPLETA MODAL -->
+                <div id="anamneseModal" class="modal-overlay hidden">
+                    <div class="modal" style="max-width: 800px;">
+                        <div class="modal-header">
+                            <h2 class="modal-title"><i class="fas fa-notes-medical" style="color: var(--primary-500);"></i> Anamnese Completa</h2>
+                            <button class="modal-close" onclick="AnamneseActions.closeModal()">&times;</button>
+                        </div>
+                        
+                        <div class="modal-body" style="max-height: 70vh; overflow-y: auto; padding-right: 1rem;">
+                            <!-- Tabs da Anamnese -->
+                            <div class="anamnese-tabs">
+                                <button class="anamnese-tab active" onclick="AnamneseActions.switchTab('identificacao')" data-tab="identificacao">📋 Identificação</button>
+                                <button class="anamnese-tab" onclick="AnamneseActions.switchTab('queixa')" data-tab="queixa">🎯 Queixa</button>
+                                <button class="anamnese-tab" onclick="AnamneseActions.switchTab('gestacional')" data-tab="gestacional">🤰 Gestacional</button>
+                                <button class="anamnese-tab" onclick="AnamneseActions.switchTab('desenvolvimento')" data-tab="desenvolvimento">📈 Desenvolvimento</button>
+                                <button class="anamnese-tab" onclick="AnamneseActions.switchTab('alimentacao')" data-tab="alimentacao">🍼 Alimentação</button>
+                                <button class="anamnese-tab" onclick="AnamneseActions.switchTab('saude')" data-tab="saude">🏥 Saúde</button>
+                                <button class="anamnese-tab" onclick="AnamneseActions.switchTab('escolar')" data-tab="escolar">📚 Escolar</button>
+                                <button class="anamnese-tab" onclick="AnamneseActions.switchTab('familiar')" data-tab="familiar">👪 Familiar</button>
+                                <button class="anamnese-tab" onclick="AnamneseActions.switchTab('obs')" data-tab="obs">📝 Observações</button>
+                            </div>
+
+                            <!-- IDENTIFICAÇÃO -->
+                            <div id="anamnese-tab-identificacao" class="anamnese-section">
+                                <h4>Identificação da Criança</h4>
+                                <div class="grid-2">
+                                    <div class="form-group">
+                                        <label class="form-label">Nome completo</label>
+                                        <input type="text" id="anamnese_nome" class="form-control" readonly>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Data de nascimento</label>
+                                        <input type="date" id="anamnese_dataNascimento" class="form-control">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Sexo</label>
+                                        <select id="anamnese_sexo" class="form-control">
+                                            <option value="">Selecione</option>
+                                            <option value="Feminino">Feminino</option>
+                                            <option value="Masculino">Masculino</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Naturalidade</label>
+                                        <input type="text" id="anamnese_naturalidade" class="form-control">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Endereço</label>
+                                        <input type="text" id="anamnese_endereco" class="form-control">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Telefone</label>
+                                        <input type="text" id="anamnese_telefone" class="form-control">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">E-mail</label>
+                                        <input type="email" id="anamnese_email" class="form-control">
+                                    </div>
+                                </div>
+
+                                <h4 style="margin-top: 2rem;">Responsável</h4>
+                                <div class="grid-2">
+                                    <div class="form-group">
+                                        <label class="form-label">Nome do responsável</label>
+                                        <input type="text" id="anamnese_responsavel" class="form-control">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Parentesco</label>
+                                        <input type="text" id="anamnese_parentesco" class="form-control">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Telefone do responsável</label>
+                                        <input type="text" id="anamnese_telefoneResponsavel" class="form-control">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- QUEIXA PRINCIPAL -->
+                            <div id="anamnese-tab-queixa" class="anamnese-section hidden">
+                                <h4>Queixa Principal</h4>
+                                <div class="form-group">
+                                    <label class="form-label">Descreva a queixa</label>
+                                    <textarea id="anamnese_queixaPrincipal" class="form-control" rows="3"></textarea>
+                                </div>
+                                <div class="grid-2">
+                                    <div class="form-group">
+                                        <label class="form-label">Quando começou?</label>
+                                        <input type="text" id="anamnese_inicioQueixa" class="form-control">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Quem observou?</label>
+                                        <input type="text" id="anamnese_quemObservou" class="form-control">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Evolução da queixa</label>
+                                    <textarea id="anamnese_evolucaoQueixa" class="form-control" rows="2"></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Tratamentos anteriores</label>
+                                    <textarea id="anamnese_tratamentosAnteriores" class="form-control" rows="2"></textarea>
+                                </div>
+                            </div>
+
+                            <!-- HISTÓRICO GESTACIONAL -->
+                            <div id="anamnese-tab-gestacional" class="anamnese-section hidden">
+                                <h4>Gestacão</h4>
+                                <div class="grid-2">
+                                    <div class="form-group">
+                                        <label class="form-label">Gestação desejada?</label>
+                                        <select id="anamnese_gestacaoDesejada" class="form-control">
+                                            <option value="">Selecione</option>
+                                            <option value="Sim">Sim</option>
+                                            <option value="Não">Não</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Intercorrências</label>
+                                        <input type="text" id="anamnese_intercorrenciasGestacao" class="form-control">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Medicamentos na gestação</label>
+                                        <input type="text" id="anamnese_medicamentosGestacao" class="form-control">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Tipo de parto</label>
+                                        <select id="anamnese_tipoParto" class="form-control">
+                                            <option value="">Selecione</option>
+                                            <option value="Normal">Normal</option>
+                                            <option value="Cesárea">Cesárea</option>
+                                            <option value="Fórceps">Fórceps</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Local do parto</label>
+                                        <input type="text" id="anamnese_localParto" class="form-control">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Tempo de gestação</label>
+                                        <input type="text" id="anamnese_tempoGestacao" class="form-control" placeholder="Ex: 39 semanas">
+                                    </div>
+                                </div>
+
+                                <h4 style="margin-top: 2rem;">Nascimento</h4>
+                                <div class="grid-2">
+                                    <div class="form-group">
+                                        <label class="form-label">Peso (kg)</label>
+                                        <input type="text" id="anamnese_pesoNascimento" class="form-control">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Comprimento (cm)</label>
+                                        <input type="text" id="anamnese_comprimentoNascimento" class="form-control">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">APGAR</label>
+                                        <input type="text" id="anamnese_apgar" class="form-control" placeholder="Ex: 9/10">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Chorou ao nascer?</label>
+                                        <select id="anamnese_chorouNascimento" class="form-control">
+                                            <option value="">Selecione</option>
+                                            <option value="Sim, imediatamente">Sim, imediatamente</option>
+                                            <option value="Com demora">Com demora</option>
+                                            <option value="Precisou de ajuda">Precisou de ajuda</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Precisou de oxigênio?</label>
+                                        <select id="anamnese_precisouOxigenio" class="form-control">
+                                            <option value="">Selecione</option>
+                                            <option value="Sim">Sim</option>
+                                            <option value="Não">Não</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Icterícia?</label>
+                                        <select id="anamnese_ictericia" class="form-control">
+                                            <option value="">Selecione</option>
+                                            <option value="Sim">Sim</option>
+                                            <option value="Não">Não</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Ficou em incubadora?</label>
+                                        <select id="anamnese_incubadora" class="form-control">
+                                            <option value="">Selecione</option>
+                                            <option value="Sim">Sim</option>
+                                            <option value="Não">Não</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Alta com quantos dias?</label>
+                                        <input type="text" id="anamnese_altaComDias" class="form-control">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- DESENVOLVIMENTO -->
+                            <div id="anamnese-tab-desenvolvimento" class="anamnese-section hidden">
+                                <h4>Marcos do Desenvolvimento</h4>
+                                <div class="grid-2">
+                                    <div class="form-group">
+                                        <label class="form-label">Sustentou a cabeça</label>
+                                        <input type="text" id="anamnese_sustentouCabeca" class="form-control" placeholder="Ex: 3 meses">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Sentou sem apoio</label>
+                                        <input type="text" id="anamnese_sentou" class="form-control" placeholder="Ex: 7 meses">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Engatinhou</label>
+                                        <input type="text" id="anamnese_engatinhou" class="form-control" placeholder="Ex: 9 meses">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Andou</label>
+                                        <input type="text" id="anamnese_andou" class="form-control" placeholder="Ex: 12 meses">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Primeiras palavras</label>
+                                        <input type="text" id="anamnese_primeirasPalavras" class="form-control" placeholder="Ex: 12 meses">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Formou frases</label>
+                                        <input type="text" id="anamnese_formouFrases" class="form-control" placeholder="Ex: 2 anos">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Controle esfincteriano</label>
+                                        <input type="text" id="anamnese_controleEsfincter" class="form-control" placeholder="Ex: 3 anos">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- ALIMENTAÇÃO -->
+                            <div id="anamnese-tab-alimentacao" class="anamnese-section hidden">
+                                <h4>Alimentação</h4>
+                                <div class="grid-2">
+                                    <div class="form-group">
+                                        <label class="form-label">Aleitamento materno</label>
+                                        <select id="anamnese_aleitamentoMaterno" class="form-control">
+                                            <option value="">Selecione</option>
+                                            <option value="Exclusivo até 6 meses">Exclusivo até 6 meses</option>
+                                            <option value="Parcial">Parcial</option>
+                                            <option value="Não">Não</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Tempo de aleitamento</label>
+                                        <input type="text" id="anamnese_tempoAleitamento" class="form-control" placeholder="Ex: 1 ano">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Introdução alimentar</label>
+                                        <input type="text" id="anamnese_introducaoAlimentar" class="form-control" placeholder="Como foi?">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Dificuldades alimentares</label>
+                                        <input type="text" id="anamnese_dificuldadesAlimentares" class="form-control" placeholder="Ex: Recusa, engasgos">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Aceita variedade?</label>
+                                        <select id="anamnese_aceitaVariedade" class="form-control">
+                                            <option value="">Selecione</option>
+                                            <option value="Sim">Sim</option>
+                                            <option value="Não">Não</option>
+                                            <option value="Pouca variedade">Pouca variedade</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Mastigação</label>
+                                        <select id="anamnese_mastigacao" class="form-control">
+                                            <option value="">Selecione</option>
+                                            <option value="Adequada">Adequada</option>
+                                            <option value="Com dificuldade">Com dificuldade</option>
+                                            <option value="Não mastiga">Não mastiga</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Deglutição</label>
+                                        <select id="anamnese_degluticao" class="form-control">
+                                            <option value="">Selecione</option>
+                                            <option value="Adequada">Adequada</option>
+                                            <option value="Engasga frequente">Engasga frequente</option>
+                                            <option value="Demora para engolir">Demora para engolir</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Usa mamadeira?</label>
+                                        <select id="anamnese_usaMamadeira" class="form-control">
+                                            <option value="">Selecione</option>
+                                            <option value="Sim">Sim</option>
+                                            <option value="Não">Não</option>
+                                            <option value="Às vezes">Às vezes</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Usa chupeta?</label>
+                                        <select id="anamnese_usaChupeta" class="form-control">
+                                            <option value="">Selecione</option>
+                                            <option value="Sim">Sim</option>
+                                            <option value="Não">Não</option>
+                                            <option value="Às vezes">Às vezes</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- SAÚDE -->
+                            <div id="anamnese-tab-saude" class="anamnese-section hidden">
+                                <h4>Saúde</h4>
+                                <div class="grid-2">
+                                    <div class="form-group">
+                                        <label class="form-label">Doenças na infância</label>
+                                        <input type="text" id="anamnese_doencasInfancia" class="form-control">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Cirurgias</label>
+                                        <input type="text" id="anamnese_cirurgias" class="form-control">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Alergias</label>
+                                        <input type="text" id="anamnese_alergias" class="form-control">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Medicamentos contínuos</label>
+                                        <input type="text" id="anamnese_medicamentosContinuos" class="form-control">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Internações</label>
+                                        <input type="text" id="anamnese_internacoes" class="form-control">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Acompanhamento médico</label>
+                                        <input type="text" id="anamnese_acompanhamentoMedico" class="form-control">
+                                    </div>
+                                </div>
+
+                                <h4 style="margin-top: 2rem;">Audição e Visão</h4>
+                                <div class="grid-2">
+                                    <div class="form-group">
+                                        <label class="form-label">Triagem auditiva</label>
+                                        <select id="anamnese_triagemAuditiva" class="form-control">
+                                            <option value="">Selecione</option>
+                                            <option value="Normal">Normal</option>
+                                            <option value="Alterada">Alterada</option>
+                                            <option value="Não fez">Não fez</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Otites frequentes?</label>
+                                        <select id="anamnese_otitesFrequentes" class="form-control">
+                                            <option value="">Selecione</option>
+                                            <option value="Sim">Sim</option>
+                                            <option value="Não">Não</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Cirurgias no ouvido</label>
+                                        <input type="text" id="anamnese_cirurgiasOuvido" class="form-control">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Reage a sons?</label>
+                                        <select id="anamnese_reacaoSons" class="form-control">
+                                            <option value="">Selecione</option>
+                                            <option value="Sim">Sim</option>
+                                            <option value="Às vezes">Às vezes</option>
+                                            <option value="Não">Não</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Dificuldades visuais</label>
+                                        <select id="anamnese_dificuldadesVisuais" class="form-control">
+                                            <option value="">Selecione</option>
+                                            <option value="Não">Não</option>
+                                            <option value="Aproxima objetos">Aproxima objetos</option>
+                                            <option value="Aperta os olhos">Aperta os olhos</option>
+                                            <option value="Desvio ocular">Desvio ocular</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Usa óculos?</label>
+                                        <select id="anamnese_usaOculos" class="form-control">
+                                            <option value="">Selecione</option>
+                                            <option value="Sim">Sim</option>
+                                            <option value="Não">Não</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Estrabismo?</label>
+                                        <select id="anamnese_estrabismo" class="form-control">
+                                            <option value="">Selecione</option>
+                                            <option value="Sim">Sim</option>
+                                            <option value="Não">Não</option>
+                                            <option value="Às vezes">Às vezes</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <h4 style="margin-top: 2rem;">Sono</h4>
+                                <div class="grid-2">
+                                    <div class="form-group">
+                                        <label class="form-label">Dorme bem?</label>
+                                        <select id="anamnese_dormeBem" class="form-control">
+                                            <option value="">Selecione</option>
+                                            <option value="Sim">Sim</option>
+                                            <option value="Não">Não</option>
+                                            <option value="Às vezes">Às vezes</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Horas de sono</label>
+                                        <input type="text" id="anamnese_horasSono" class="form-control" placeholder="Ex: 8 horas">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Ronca?</label>
+                                        <select id="anamnese_ronca" class="form-control">
+                                            <option value="">Selecione</option>
+                                            <option value="Sim">Sim</option>
+                                            <option value="Não">Não</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Respira pela boca?</label>
+                                        <select id="anamnese_respiraBoca" class="form-control">
+                                            <option value="">Selecione</option>
+                                            <option value="Sim">Sim</option>
+                                            <option value="Não">Não</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Range os dentes?</label>
+                                        <select id="anamnese_bruxismo" class="form-control">
+                                            <option value="">Selecione</option>
+                                            <option value="Sim">Sim</option>
+                                            <option value="Não">Não</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Pesadelos?</label>
+                                        <select id="anamnese_pesadelos" class="form-control">
+                                            <option value="">Selecione</option>
+                                            <option value="Sim">Sim</option>
+                                            <option value="Não">Não</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- ESCOLARIDADE -->
+                            <div id="anamnese-tab-escolar" class="anamnese-section hidden">
+                                <h4>Escolaridade</h4>
+                                <div class="grid-2">
+                                    <div class="form-group">
+                                        <label class="form-label">Frequenta escola?</label>
+                                        <select id="anamnese_frequentaEscola" class="form-control">
+                                            <option value="">Selecione</option>
+                                            <option value="Sim">Sim</option>
+                                            <option value="Não">Não</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Série/Ano</label>
+                                        <input type="text" id="anamnese_serieEscolar" class="form-control">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Nome da escola</label>
+                                        <input type="text" id="anamnese_nomeEscola" class="form-control">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Adaptação escolar</label>
+                                        <select id="anamnese_adaptacaoEscolar" class="form-control">
+                                            <option value="">Selecione</option>
+                                            <option value="Boa">Boa</option>
+                                            <option value="Regular">Regular</option>
+                                            <option value="Difícil">Difícil</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Rendimento escolar</label>
+                                        <select id="anamnese_rendimentoEscolar" class="form-control">
+                                            <option value="">Selecione</option>
+                                            <option value="Acima da média">Acima da média</option>
+                                            <option value="Na média">Na média</option>
+                                            <option value="Abaixo da média">Abaixo da média</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Relacionamento com colegas</label>
+                                        <select id="anamnese_relacionamentoColegas" class="form-control">
+                                            <option value="">Selecione</option>
+                                            <option value="Bom">Bom</option>
+                                            <option value="Regular">Regular</option>
+                                            <option value="Difícil">Difícil</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Dificuldades escolares</label>
+                                        <input type="text" id="anamnese_dificuldadesEscolares" class="form-control">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Apoio pedagógico</label>
+                                        <input type="text" id="anamnese_apoioPedagogico" class="form-control">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- HISTÓRIA FAMILIAR -->
+                            <div id="anamnese-tab-familiar" class="anamnese-section hidden">
+                                <h4>História Familiar</h4>
+                                <div class="grid-2">
+                                    <div class="form-group">
+                                        <label class="form-label">Composição familiar</label>
+                                        <input type="text" id="anamnese_composicaoFamiliar" class="form-control" placeholder="Ex: Pai, mãe e 2 irmãos">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Quem mora com a criança?</label>
+                                        <input type="text" id="anamnese_quemMoraCom" class="form-control">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Língua falada em casa</label>
+                                        <input type="text" id="anamnese_linguaFalada" class="form-control" placeholder="Ex: Português">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Casos semelhantes na família</label>
+                                        <textarea id="anamnese_casosSemelhantesFamilia" class="form-control" rows="2"></textarea>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Observações sobre a família</label>
+                                        <textarea id="anamnese_observacoesFamilia" class="form-control" rows="2"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- OBSERVAÇÕES GERAIS -->
+                            <div id="anamnese-tab-obs" class="anamnese-section hidden">
+                                <h4>Observações Gerais</h4>
+                                <div class="form-group">
+                                    <textarea id="anamnese_observacoesGerais" class="form-control" rows="5"></textarea>
+                                </div>
+                                <div class="grid-2">
+                                    <div class="form-group">
+                                        <label class="form-label">Data do preenchimento</label>
+                                        <input type="date" id="anamnese_dataPreenchimento" class="form-control">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Preenchido por</label>
+                                        <input type="text" id="anamnese_preenchidoPor" class="form-control">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="modal-footer">
+                            <button class="btn btn-secondary" onclick="AnamneseActions.closeModal()">Cancelar</button>
+                            <button class="btn btn-primary" onclick="AnamneseActions.save()">Salvar Anamnese</button>
                         </div>
                     </div>
                 </div>
