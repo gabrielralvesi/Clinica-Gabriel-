@@ -1290,17 +1290,17 @@
         // ============================================
         // CONFIGURAÇÕES
         // ============================================
-        const APP_VERSION = '17.0.0';
+        const APP_VERSION = '18.0.0';
         const CLINIC_NAME = "ClinicFlow Pro";
         const CLINIC_SUBTITLE = "Gestão de Clínica Profissional";
         const CLINIC_CRFA = "CRFa 5-13766";
 
         const STORAGE_KEYS = {
-            PATIENTS: "clinicflow_patients_v17",
-            SESSIONS: "clinicflow_sessions_v17",
-            SCHEDULE: "clinicflow_schedule_v17",
-            TOKENS: "clinicflow_tokens_v17",
-            THEME: "clinicflow_theme_v17",
+            PATIENTS: "clinicflow_patients_v18",
+            SESSIONS: "clinicflow_sessions_v18",
+            SCHEDULE: "clinicflow_schedule_v18",
+            TOKENS: "clinicflow_tokens_v18",
+            THEME: "clinicflow_theme_v18",
             VERSION: "clinicflow_version",
             NOTIFICATIONS: "clinicflow_notifications",
             PHOTOS: "clinicflow_photos",
@@ -1449,7 +1449,7 @@
         let currentEvolucaoId = null;
 
         // ============================================
-        // UTILS
+        // UTILS CORRIGIDO (com parseMoney melhorado)
         // ============================================
         const $ = (id) => document.getElementById(id);
 
@@ -1470,7 +1470,34 @@
 
             parseMoney(val) {
                 if (!val) return 0;
-                return Number(String(val).replace(/\./g, '').replace(',', '.')) || 0;
+                
+                // Se já for número, retorna
+                if (typeof val === 'number') return val;
+                
+                // Converte para string e remove espaços
+                let str = String(val).trim();
+                
+                // Remove "R$" se existir
+                str = str.replace(/[R$\s]/g, '');
+                
+                // CASO 1: Formato brasileiro com ponto como separador de milhar e vírgula decimal
+                // Ex: "1.100,00" → 1100.00
+                if (str.includes(',') && str.includes('.')) {
+                    // Remove os pontos (separadores de milhar) e troca vírgula por ponto
+                    str = str.replace(/\./g, '');
+                    str = str.replace(',', '.');
+                } 
+                // CASO 2: Formato brasileiro só com vírgula decimal
+                // Ex: "1100,00" → 1100.00
+                else if (str.includes(',')) {
+                    str = str.replace(',', '.');
+                }
+                // CASO 3: Formato internacional já com ponto decimal
+                // Ex: "1100.00" → 1100.00
+                
+                // Converte para número
+                const num = parseFloat(str);
+                return isNaN(num) ? 0 : num;
             },
 
             fmtMoney(val) {
@@ -1539,7 +1566,7 @@
         };
 
         // ============================================
-        // STORAGE
+        // STORAGE CORRIGIDO (com importação melhorada)
         // ============================================
         const Storage = {
             save(key, data) {
@@ -1606,19 +1633,102 @@
                     try {
                         const dados = JSON.parse(e.target.result);
                         
-                        if (dados.pacientes) this.save(STORAGE_KEYS.PATIENTS, dados.pacientes);
-                        if (dados.sessoes) this.save(STORAGE_KEYS.SESSIONS, dados.sessoes);
-                        if (dados.agenda) this.save(STORAGE_KEYS.SCHEDULE, dados.agenda);
-                        if (dados.tokens) this.save(STORAGE_KEYS.TOKENS, dados.tokens);
-                        if (dados.fotos) this.save(STORAGE_KEYS.PHOTOS, dados.fotos);
-                        if (dados.evolucoes) this.save(STORAGE_KEYS.EVOLUCOES, dados.evolucoes);
+                        // Mapeamento das chaves do arquivo para as chaves do sistema
+                        const mapping = {
+                            // Português (padrão do sistema)
+                            'pacientes': STORAGE_KEYS.PATIENTS,
+                            'sessoes': STORAGE_KEYS.SESSIONS,
+                            'agenda': STORAGE_KEYS.SCHEDULE,
+                            'tokens': STORAGE_KEYS.TOKENS,
+                            'fotos': STORAGE_KEYS.PHOTOS,
+                            'evolucoes': STORAGE_KEYS.EVOLUCOES,
+                            
+                            // Inglês (possível formato do Drive)
+                            'patients': STORAGE_KEYS.PATIENTS,
+                            'sessions': STORAGE_KEYS.SESSIONS,
+                            'schedule': STORAGE_KEYS.SCHEDULE,
+                            'photos': STORAGE_KEYS.PHOTOS,
+                            
+                            // Outros nomes possíveis
+                            'paciente': STORAGE_KEYS.PATIENTS,
+                            'clients': STORAGE_KEYS.PATIENTS,
+                            'atendimentos': STORAGE_KEYS.SESSIONS
+                        };
                         
-                        Utils.showAlert('Dados importados com sucesso!', 'success');
+                        let importados = 0;
+                        
+                        // Para cada chave no arquivo, salva no localStorage
+                        Object.keys(dados).forEach(key => {
+                            const storageKey = mapping[key];
+                            if (storageKey && dados[key]) {
+                                let dadosParaSalvar = dados[key];
+                                
+                                // Se for pacientes, garantir que anamnese existe e converter valores
+                                if (storageKey === STORAGE_KEYS.PATIENTS) {
+                                    dadosParaSalvar = dados[key].map(p => {
+                                        // Garantir que tem anamnese
+                                        if (!p.anamnese) {
+                                            p.anamnese = JSON.parse(JSON.stringify(ANAMNESE_TEMPLATE));
+                                        }
+                                        // Garantir que tem os campos básicos
+                                        if (!p.id) p.id = Utils.uid();
+                                        if (!p.name && p.nome) p.name = p.nome;
+                                        if (!p.phone && p.telefone) p.phone = p.telefone;
+                                        if (!p.serviceType && p.convenio) p.serviceType = p.convenio;
+                                        if (!p.defaultValue && p.valorPadrao) p.defaultValue = p.valorPadrao;
+                                        
+                                        return p;
+                                    });
+                                }
+                                
+                                // Se for sessões, converter valores
+                                if (storageKey === STORAGE_KEYS.SESSIONS && Array.isArray(dados[key])) {
+                                    dadosParaSalvar = dados[key].map(s => {
+                                        if (s.valor && typeof s.valor === 'string') {
+                                            s.valor = Utils.parseMoney(s.valor);
+                                        }
+                                        if (!s.id) s.id = Utils.uid();
+                                        return s;
+                                    });
+                                }
+                                
+                                this.save(storageKey, dadosParaSalvar);
+                                importados++;
+                            }
+                        });
+                        
+                        if (importados === 0) {
+                            // Tenta importar como backup completo
+                            const backupCompleto = {
+                                pacientes: dados.pacientes || dados.patients || [],
+                                sessoes: dados.sessoes || dados.sessions || [],
+                                agenda: dados.agenda || dados.schedule || { times: DEFAULT_TIMES, recurring: {} },
+                                tokens: dados.tokens || {},
+                                fotos: dados.fotos || dados.photos || {},
+                                evolucoes: dados.evolucoes || {}
+                            };
+                            
+                            if (backupCompleto.pacientes.length > 0) {
+                                this.save(STORAGE_KEYS.PATIENTS, backupCompleto.pacientes);
+                                this.save(STORAGE_KEYS.SESSIONS, backupCompleto.sessoes);
+                                this.save(STORAGE_KEYS.SCHEDULE, backupCompleto.agenda);
+                                this.save(STORAGE_KEYS.TOKENS, backupCompleto.tokens);
+                                this.save(STORAGE_KEYS.PHOTOS, backupCompleto.fotos);
+                                this.save(STORAGE_KEYS.EVOLUCOES, backupCompleto.evolucoes);
+                                importados = 6;
+                            }
+                        }
+                        
+                        if (importados > 0) {
+                            Utils.showAlert(`${importados} categorias importadas com sucesso!`, 'success');
+                        } else {
+                            Utils.showAlert('Nenhum dado reconhecido no arquivo', 'warning');
+                        }
                         
                         if (callback) setTimeout(callback, 1500);
                         
                     } catch (erro) {
-                        console.error(erro);
+                        console.error('Erro detalhado:', erro);
                         Utils.showAlert('Arquivo inválido', 'error');
                     }
                 };
