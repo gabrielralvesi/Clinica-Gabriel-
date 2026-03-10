@@ -72,6 +72,7 @@
             --radius-lg: 0.75rem;
             --radius-xl: 1rem;
             --radius-2xl: 1.5rem;
+            --radius-full: 9999px;
             
             --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
         }
@@ -226,6 +227,7 @@
             cursor: pointer;
             border-radius: var(--radius-full);
             font-size: 0.875rem;
+            transition: all 0.2s;
         }
 
         .backup-bar button:hover {
@@ -1288,17 +1290,17 @@
         // ============================================
         // CONFIGURAÇÕES
         // ============================================
-        const APP_VERSION = '16.0.0';
+        const APP_VERSION = '17.0.0';
         const CLINIC_NAME = "ClinicFlow Pro";
         const CLINIC_SUBTITLE = "Gestão de Clínica Profissional";
         const CLINIC_CRFA = "CRFa 5-13766";
 
         const STORAGE_KEYS = {
-            PATIENTS: "clinicflow_patients_v16",
-            SESSIONS: "clinicflow_sessions_v16",
-            SCHEDULE: "clinicflow_schedule_v16",
-            TOKENS: "clinicflow_tokens_v16",
-            THEME: "clinicflow_theme_v16",
+            PATIENTS: "clinicflow_patients_v17",
+            SESSIONS: "clinicflow_sessions_v17",
+            SCHEDULE: "clinicflow_schedule_v17",
+            TOKENS: "clinicflow_tokens_v17",
+            THEME: "clinicflow_theme_v17",
             VERSION: "clinicflow_version",
             NOTIFICATIONS: "clinicflow_notifications",
             PHOTOS: "clinicflow_photos",
@@ -1495,10 +1497,12 @@
             },
 
             formatDate(dateStr) {
+                if (!dateStr) return '';
                 return new Date(dateStr).toLocaleDateString('pt-BR');
             },
 
             formatDateTime(dateStr) {
+                if (!dateStr) return '';
                 return new Date(dateStr).toLocaleString('pt-BR');
             },
 
@@ -2216,84 +2220,6 @@
                 if (sentences.length <= 2) return text;
                 
                 return sentences.slice(0, 2).join('. ') + '.';
-            }
-        };
-
-        // ============================================
-        // ANAMNESE UI
-        // ============================================
-        const AnamneseUI = {
-            currentTab: 'identificacao',
-
-            switchTab(tabId) {
-                document.querySelectorAll('.anamnese-section').forEach(tab => {
-                    tab.classList.add('hidden');
-                });
-                
-                document.querySelectorAll('.anamnese-tab').forEach(btn => {
-                    btn.classList.remove('active');
-                });
-                
-                const tabElement = document.getElementById(`anamnese-tab-${tabId}`);
-                if (tabElement) {
-                    tabElement.classList.remove('hidden');
-                }
-                
-                const activeBtn = document.querySelector(`.anamnese-tab[data-tab="${tabId}"]`);
-                if (activeBtn) {
-                    activeBtn.classList.add('active');
-                }
-                
-                this.currentTab = tabId;
-            },
-
-            loadFromPatient(patientId) {
-                const anamnese = Patients.getAnamnese(patientId);
-                
-                // Função para preencher campos recursivamente
-                const fillFields = (obj, prefix = '') => {
-                    Object.keys(obj).forEach(key => {
-                        const value = obj[key];
-                        const fieldId = `anamnese_${prefix}${key}`;
-                        
-                        if (value && typeof value === 'object' && !Array.isArray(value)) {
-                            fillFields(value, `${prefix}${key}_`);
-                        } else {
-                            const input = document.getElementById(fieldId);
-                            if (input) {
-                                input.value = value || '';
-                            }
-                        }
-                    });
-                };
-                
-                fillFields(anamnese);
-            },
-
-            saveFromForm(patientId) {
-                const anamnese = JSON.parse(JSON.stringify(ANAMNESE_TEMPLATE));
-                
-                const collectFields = (obj, prefix = '') => {
-                    Object.keys(obj).forEach(key => {
-                        const value = obj[key];
-                        const fieldId = `anamnese_${prefix}${key}`;
-                        
-                        if (value && typeof value === 'object' && !Array.isArray(value)) {
-                            collectFields(value, `${prefix}${key}_`);
-                        } else {
-                            const input = document.getElementById(fieldId);
-                            if (input) {
-                                obj[key] = input.value;
-                            }
-                        }
-                    });
-                };
-                
-                collectFields(anamnese);
-                
-                anamnese.dataPreenchimento = Utils.todayISO();
-                
-                return Patients.saveAnamnese(patientId, anamnese);
             }
         };
 
@@ -3050,7 +2976,7 @@
                             <i class="fas fa-robot" style="font-size: 3rem; color: #8b5cf6; margin-bottom: 1rem;"></i>
                             <p class="muted">Nenhuma evolução registrada</p>
                             <button class="btn btn-ai" onclick="EvolucaoActions.openModal()">
-                                <i class="fas fa-robot"></i> Registrar com IA Local
+                                <i class="fas fa-robot"></i> Registrar com IA
                             </button>
                         </div>
                     `;
@@ -3099,8 +3025,22 @@
             openModal() {
                 if (!openedPatientId) return;
                 
-                AnamneseUI.loadFromPatient(openedPatientId);
-                AnamneseUI.switchTab('identificacao');
+                // Carregar dados no modal
+                const anamnese = Patients.getAnamnese(openedPatientId);
+                
+                // Preencher todos os campos
+                Object.keys(anamnese).forEach(key => {
+                    const input = document.getElementById(`anamnese_${key}`);
+                    if (input) input.value = anamnese[key] || '';
+                });
+                
+                // Reset para primeira tab
+                document.querySelectorAll('.anamnese-section').forEach(tab => tab.classList.add('hidden'));
+                document.getElementById('anamnese-tab-identificacao')?.classList.remove('hidden');
+                
+                document.querySelectorAll('.anamnese-tab').forEach(btn => btn.classList.remove('active'));
+                document.querySelector('.anamnese-tab[data-tab="identificacao"]')?.classList.add('active');
+                
                 $('anamneseModal').classList.remove('hidden');
             },
 
@@ -3111,14 +3051,32 @@
             save() {
                 if (!openedPatientId) return;
                 
-                if (AnamneseUI.saveFromForm(openedPatientId)) {
+                const anamnese = JSON.parse(JSON.stringify(ANAMNESE_TEMPLATE));
+                
+                // Coletar todos os campos
+                Object.keys(anamnese).forEach(key => {
+                    const input = document.getElementById(`anamnese_${key}`);
+                    if (input) anamnese[key] = input.value;
+                });
+                
+                anamnese.dataPreenchimento = Utils.todayISO();
+                
+                if (Patients.saveAnamnese(openedPatientId, anamnese)) {
                     this.closeModal();
                     Utils.showAlert('Anamnese salva com sucesso!', 'success');
                 }
             },
 
             switchTab(tabId) {
-                AnamneseUI.switchTab(tabId);
+                document.querySelectorAll('.anamnese-section').forEach(tab => {
+                    tab.classList.add('hidden');
+                });
+                document.getElementById(`anamnese-tab-${tabId}`)?.classList.remove('hidden');
+                
+                document.querySelectorAll('.anamnese-tab').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                document.querySelector(`.anamnese-tab[data-tab="${tabId}"]`)?.classList.add('active');
             }
         };
 
@@ -3582,7 +3540,7 @@
                     
                     if (suggestions && suggestions.length > 0) {
                         container.innerHTML = `
-                            <h4><i class="fas fa-robot"></i> Sugestões da IA Local</h4>
+                            <h4><i class="fas fa-robot"></i> Sugestões da IA</h4>
                             ${suggestions.map(s => 
                                 `<span class="suggestion-chip" onclick="EvolucaoActions.useSuggestion('${s.replace(/'/g, "\\'")}')">${s.substring(0, 50)}...</span>`
                             ).join('')}
@@ -3709,7 +3667,7 @@
         // ============================================
         const ScheduleView = {
             render() {
-                Tokens.verificarZararMensal();
+                Tokens.verificarZerarMensal();
                 
                 const schedule = Schedule.get();
                 const times = schedule.times || [];
@@ -4647,7 +4605,7 @@
         }
 
         // ============================================
-        // MODAIS HTML (INCLUINDO ANAMNESE COMPLETA)
+        // MODAIS HTML
         // ============================================
         function renderModals() {
             const modals = `
@@ -4734,7 +4692,7 @@
                     </div>
                 </div>
 
-                <!-- EVOLUCAO MODAL COM IA LOCAL -->
+                <!-- EVOLUCAO MODAL COM IA -->
                 <div id="evolucaoModal" class="modal-overlay hidden">
                     <div class="modal">
                         <div class="modal-header">
@@ -4753,7 +4711,7 @@
                             </div>
 
                             <div class="ai-suggestions" id="aiSuggestions">
-                                <h4><i class="fas fa-robot"></i> Sugestões da IA Local</h4>
+                                <h4><i class="fas fa-robot"></i> Sugestões da IA</h4>
                                 <div class="ai-loading"></div> Gerando sugestões...
                             </div>
 
@@ -4797,7 +4755,7 @@
                     </div>
                 </div>
 
-                <!-- ANAMNESE COMPLETA MODAL -->
+                <!-- ANAMNESE MODAL -->
                 <div id="anamneseModal" class="modal-overlay hidden">
                     <div class="modal" style="max-width: 800px;">
                         <div class="modal-header">
@@ -4825,7 +4783,7 @@
                                 <div class="grid-2">
                                     <div class="form-group">
                                         <label class="form-label">Nome completo</label>
-                                        <input type="text" id="anamnese_nome" class="form-control" readonly>
+                                        <input type="text" id="anamnese_nome" class="form-control">
                                     </div>
                                     <div class="form-group">
                                         <label class="form-label">Data de nascimento</label>
