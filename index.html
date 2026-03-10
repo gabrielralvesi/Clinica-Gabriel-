@@ -16,7 +16,6 @@
     <style>
         /* ===== DESIGN SYSTEM PROFISSIONAL ===== */
         :root {
-            /* Cores principais */
             --primary-50: #ecfdf5;
             --primary-100: #d1fae5;
             --primary-200: #a7f3d0;
@@ -28,7 +27,6 @@
             --primary-800: #065f46;
             --primary-900: #064e3b;
             
-            /* Tons de cinza */
             --gray-50: #f9fafb;
             --gray-100: #f3f4f6;
             --gray-200: #e5e7eb;
@@ -41,7 +39,6 @@
             --gray-900: #111827;
             --gray-950: #0f172a;
             
-            /* Cores semânticas */
             --success: #10b981;
             --success-light: #d1fae5;
             --warning: #f59e0b;
@@ -51,7 +48,6 @@
             --info: #3b82f6;
             --info-light: #dbeafe;
             
-            /* Cores de convênios */
             --cassems: #10b981;
             --cassems-light: #d1fae5;
             --particular: #f59e0b;
@@ -61,7 +57,6 @@
             --outros: #8b5cf6;
             --outros-light: #ede9fe;
             
-            /* Efeitos */
             --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
             --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
             --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
@@ -77,7 +72,6 @@
             --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
         }
 
-        /* Tema claro */
         .light-mode {
             --bg-primary: var(--gray-50);
             --bg-secondary: white;
@@ -89,7 +83,6 @@
             --header-bg: rgba(255, 255, 255, 0.8);
         }
 
-        /* Tema escuro (padrão) */
         body {
             --bg-primary: var(--gray-950);
             --bg-secondary: var(--gray-900);
@@ -233,6 +226,30 @@
         .backup-bar button:hover {
             background: var(--primary-500);
             color: white;
+        }
+
+        /* ===== BOTÃO DE SALVAR ===== */
+        .save-button {
+            background: var(--success);
+            color: white;
+            padding: 0.5rem 1.5rem;
+            border-radius: var(--radius-full);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+        }
+
+        .save-button:hover {
+            transform: scale(1.05);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .save-button i {
+            font-size: 1rem;
         }
 
         /* ===== NAVEGAÇÃO ===== */
@@ -1290,17 +1307,17 @@
         // ============================================
         // CONFIGURAÇÕES
         // ============================================
-        const APP_VERSION = '18.0.0';
+        const APP_VERSION = '20.0.0';
         const CLINIC_NAME = "ClinicFlow Pro";
         const CLINIC_SUBTITLE = "Gestão de Clínica Profissional";
         const CLINIC_CRFA = "CRFa 5-13766";
 
         const STORAGE_KEYS = {
-            PATIENTS: "clinicflow_patients_v18",
-            SESSIONS: "clinicflow_sessions_v18",
-            SCHEDULE: "clinicflow_schedule_v18",
-            TOKENS: "clinicflow_tokens_v18",
-            THEME: "clinicflow_theme_v18",
+            PATIENTS: "clinicflow_patients_v20",
+            SESSIONS: "clinicflow_sessions_v20",
+            SCHEDULE: "clinicflow_schedule_v20",
+            TOKENS: "clinicflow_tokens_v20",
+            THEME: "clinicflow_theme_v20",
             VERSION: "clinicflow_version",
             NOTIFICATIONS: "clinicflow_notifications",
             PHOTOS: "clinicflow_photos",
@@ -1438,6 +1455,14 @@
         // ============================================
         // VARIÁVEIS GLOBAIS
         // ============================================
+        let pacientes = [];
+        let sessoes = [];
+        let tokens = {};
+        let agenda = { times: DEFAULT_TIMES, recurring: {} };
+        let fotos = {};
+        let evolucoes = {};
+        let tema = 'dark';
+        
         let openedPatientId = null;
         let alertTimeout = null;
         let currentTokenSessionId = null;
@@ -1449,7 +1474,201 @@
         let currentEvolucaoId = null;
 
         // ============================================
-        // UTILS CORRIGIDO (com parseMoney melhorado)
+        // CARREGAR DADOS DO LOCALSTORAGE
+        // ============================================
+        function carregarDados() {
+            try {
+                pacientes = JSON.parse(localStorage.getItem(STORAGE_KEYS.PATIENTS)) || [];
+                sessoes = JSON.parse(localStorage.getItem(STORAGE_KEYS.SESSIONS)) || [];
+                agenda = JSON.parse(localStorage.getItem(STORAGE_KEYS.SCHEDULE)) || { times: DEFAULT_TIMES, recurring: {} };
+                tokens = JSON.parse(localStorage.getItem(STORAGE_KEYS.TOKENS)) || {};
+                fotos = JSON.parse(localStorage.getItem(STORAGE_KEYS.PHOTOS)) || {};
+                evolucoes = JSON.parse(localStorage.getItem(STORAGE_KEYS.EVOLUCOES)) || {};
+                tema = localStorage.getItem(STORAGE_KEYS.THEME) || 'dark';
+                
+                console.log('📥 Dados carregados:', {
+                    pacientes: pacientes.length,
+                    sessoes: sessoes.length,
+                    tokens: Object.keys(tokens).length,
+                    fotos: Object.keys(fotos).length,
+                    evolucoes: Object.keys(evolucoes).length
+                });
+                
+                return true;
+            } catch (e) {
+                console.error('Erro ao carregar dados:', e);
+                return false;
+            }
+        }
+
+        // ============================================
+        // SISTEMA DE SALVAMENTO ROBUSTO
+        // ============================================
+        function salvarTudo() {
+            try {
+                // Salvar pacientes
+                localStorage.setItem(STORAGE_KEYS.PATIENTS, JSON.stringify(pacientes));
+                
+                // Salvar sessões
+                localStorage.setItem(STORAGE_KEYS.SESSIONS, JSON.stringify(sessoes));
+                
+                // Salvar agenda
+                localStorage.setItem(STORAGE_KEYS.SCHEDULE, JSON.stringify(agenda));
+                
+                // Salvar tokens
+                localStorage.setItem(STORAGE_KEYS.TOKENS, JSON.stringify(tokens));
+                
+                // Salvar fotos
+                localStorage.setItem(STORAGE_KEYS.PHOTOS, JSON.stringify(fotos));
+                
+                // Salvar evoluções
+                localStorage.setItem(STORAGE_KEYS.EVOLUCOES, JSON.stringify(evolucoes));
+                
+                // Salvar tema
+                localStorage.setItem(STORAGE_KEYS.THEME, tema);
+                
+                // Salvar versão
+                localStorage.setItem(STORAGE_KEYS.VERSION, APP_VERSION);
+                
+                console.log('✅ Todos os dados salvos com sucesso!');
+                Utils.showAlert('✅ Dados salvos com sucesso!', 'success');
+                return true;
+            } catch (erro) {
+                console.error('❌ Erro ao salvar:', erro);
+                Utils.showAlert('❌ Erro ao salvar dados', 'error');
+                return false;
+            }
+        }
+
+        // ============================================
+        // BACKUP COMPLETO (EXPORTAÇÃO)
+        // ============================================
+        function backupCompleto() {
+            try {
+                const dados = {
+                    // Metadados
+                    versao: APP_VERSION,
+                    dataExport: new Date().toISOString(),
+                    nomeClinica: CLINIC_NAME,
+                    
+                    // Dados principais
+                    pacientes: pacientes,
+                    sessoes: sessoes,
+                    agenda: agenda,
+                    tokens: tokens,
+                    fotos: fotos,
+                    evolucoes: evolucoes,
+                    
+                    // Dados de configuração
+                    tema: tema,
+                    notificacoes: notificationsEnabled,
+                    
+                    // Estatísticas para verificação
+                    stats: {
+                        totalPacientes: pacientes.length,
+                        totalSessoes: sessoes.length,
+                        totalTokens: Object.keys(tokens).length,
+                        totalFotos: Object.keys(fotos).length,
+                        totalEvolucoes: Object.keys(evolucoes).length
+                    }
+                };
+                
+                // Criar arquivo
+                const blob = new Blob([JSON.stringify(dados, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `backup_clinicflow_${new Date().toISOString().split('T')[0]}.json`;
+                a.click();
+                URL.revokeObjectURL(url);
+                
+                // Mostrar estatísticas
+                const statsMsg = `
+                    ✅ Backup criado com sucesso!
+                    
+                    📊 Estatísticas do backup:
+                    • Pacientes: ${dados.stats.totalPacientes}
+                    • Sessões: ${dados.stats.totalSessoes}
+                    • Tokens: ${dados.stats.totalTokens}
+                    • Fotos: ${dados.stats.totalFotos}
+                    • Evoluções: ${dados.stats.totalEvolucoes}
+                    
+                    💾 Arquivo: backup_clinicflow_${new Date().toISOString().split('T')[0]}.json
+                `;
+                
+                Utils.showAlert(statsMsg, 'success', 5000);
+                
+            } catch (erro) {
+                console.error('Erro ao criar backup:', erro);
+                Utils.showAlert('❌ Erro ao criar backup', 'error');
+            }
+        }
+
+        // ============================================
+        // RESTAURAR BACKUP (IMPORTAÇÃO)
+        // ============================================
+        function restaurarBackup(file) {
+            const reader = new FileReader();
+            
+            reader.onload = (e) => {
+                try {
+                    const dados = JSON.parse(e.target.result);
+                    
+                    // Verificar se é um backup válido
+                    if (!dados.pacientes && !dados.sessoes && !dados.agenda) {
+                        throw new Error('Arquivo não reconhecido como backup');
+                    }
+                    
+                    // Restaurar dados
+                    if (dados.pacientes) pacientes = dados.pacientes;
+                    if (dados.sessoes) sessoes = dados.sessoes;
+                    if (dados.agenda) agenda = dados.agenda;
+                    if (dados.tokens) tokens = dados.tokens;
+                    if (dados.fotos) fotos = dados.fotos;
+                    if (dados.evolucoes) evolucoes = dados.evolucoes;
+                    if (dados.tema) tema = dados.tema;
+                    
+                    // Salvar no localStorage
+                    salvarTudo();
+                    
+                    // Mostrar resultado
+                    const stats = dados.stats || {
+                        totalPacientes: dados.pacientes?.length || 0,
+                        totalSessoes: dados.sessoes?.length || 0,
+                        totalTokens: Object.keys(dados.tokens || {}).length,
+                        totalFotos: Object.keys(dados.fotos || {}).length,
+                        totalEvolucoes: Object.keys(dados.evolucoes || {}).length
+                    };
+                    
+                    const msg = `
+                        ✅ Backup restaurado com sucesso!
+                        
+                        📊 Dados restaurados:
+                        • Pacientes: ${stats.totalPacientes}
+                        • Sessões: ${stats.totalSessoes}
+                        • Tokens: ${stats.totalTokens}
+                        • Fotos: ${stats.totalFotos}
+                        • Evoluções: ${stats.totalEvolucoes}
+                        
+                        🔄 A página será recarregada...
+                    `;
+                    
+                    Utils.showAlert(msg, 'success', 5000);
+                    
+                    // Recarregar a página após 2 segundos
+                    setTimeout(() => location.reload(), 2000);
+                    
+                } catch (erro) {
+                    console.error('Erro ao restaurar backup:', erro);
+                    Utils.showAlert('❌ Arquivo de backup inválido', 'error');
+                }
+            };
+            
+            reader.readAsText(file);
+        }
+
+        // ============================================
+        // UTILS
         // ============================================
         const $ = (id) => document.getElementById(id);
 
@@ -1470,32 +1689,17 @@
 
             parseMoney(val) {
                 if (!val) return 0;
-                
-                // Se já for número, retorna
                 if (typeof val === 'number') return val;
                 
-                // Converte para string e remove espaços
-                let str = String(val).trim();
+                let str = String(val).trim().replace(/[R$\s]/g, '');
                 
-                // Remove "R$" se existir
-                str = str.replace(/[R$\s]/g, '');
-                
-                // CASO 1: Formato brasileiro com ponto como separador de milhar e vírgula decimal
-                // Ex: "1.100,00" → 1100.00
+                // Formato brasileiro: 1.100,00 -> 1100.00
                 if (str.includes(',') && str.includes('.')) {
-                    // Remove os pontos (separadores de milhar) e troca vírgula por ponto
-                    str = str.replace(/\./g, '');
-                    str = str.replace(',', '.');
-                } 
-                // CASO 2: Formato brasileiro só com vírgula decimal
-                // Ex: "1100,00" → 1100.00
-                else if (str.includes(',')) {
+                    str = str.replace(/\./g, '').replace(',', '.');
+                } else if (str.includes(',')) {
                     str = str.replace(',', '.');
                 }
-                // CASO 3: Formato internacional já com ponto decimal
-                // Ex: "1100.00" → 1100.00
                 
-                // Converte para número
                 const num = parseFloat(str);
                 return isNaN(num) ? 0 : num;
             },
@@ -1538,12 +1742,7 @@
                 
                 const alert = document.createElement('div');
                 alert.className = `alert alert-${type}`;
-                alert.innerHTML = `
-                    <div style="display: flex; align-items: center; gap: 0.75rem;">
-                        <i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'warning' ? 'fa-exclamation-triangle' : 'fa-exclamation-circle'}"></i>
-                        <span>${message}</span>
-                    </div>
-                `;
+                alert.innerHTML = message.replace(/\n/g, '<br>');
                 
                 document.body.appendChild(alert);
                 
@@ -1566,264 +1765,121 @@
         };
 
         // ============================================
-        // STORAGE CORRIGIDO (com importação melhorada)
+        // INICIALIZAÇÃO
         // ============================================
-        const Storage = {
-            save(key, data) {
-                try {
-                    localStorage.setItem(key, JSON.stringify(data));
-                    return true;
-                } catch (e) {
-                    Utils.showAlert('Erro ao salvar dados', 'error');
-                    return false;
-                }
-            },
-
-            load(key, defaultValue = null) {
-                try {
-                    const data = localStorage.getItem(key);
-                    return data ? JSON.parse(data) : defaultValue;
-                } catch {
-                    return defaultValue;
-                }
-            },
-
-            remove(key) {
-                localStorage.removeItem(key);
-            },
-
-            clear() {
-                if (confirm("⚠️ Isso apagará TODOS os dados! Continuar?")) {
-                    localStorage.clear();
-                    location.reload();
-                }
-            },
-
-            exportAll() {
-                try {
-                    const dados = {
-                        pacientes: Patients.getAll(),
-                        sessoes: Sessions.getAll(),
-                        agenda: Schedule.get(),
-                        tokens: Tokens.getAll(),
-                        fotos: Photos.getAll(),
-                        evolucoes: Evolucoes.getAll(),
-                        dataExport: new Date().toISOString(),
-                        versao: APP_VERSION
-                    };
-                    
-                    const blob = new Blob([JSON.stringify(dados, null, 2)], { type: 'application/json' });
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = `backup_clinicflow_${Utils.todayISO()}.json`;
-                    a.click();
-                    URL.revokeObjectURL(url);
-                    
-                    Utils.showAlert('Backup exportado com sucesso!', 'success');
-                } catch (erro) {
-                    console.error(erro);
-                    Utils.showAlert('Erro ao exportar backup', 'error');
-                }
-            },
-
-            importFromFile(file, callback) {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    try {
-                        const dados = JSON.parse(e.target.result);
-                        
-                        // Mapeamento das chaves do arquivo para as chaves do sistema
-                        const mapping = {
-                            // Português (padrão do sistema)
-                            'pacientes': STORAGE_KEYS.PATIENTS,
-                            'sessoes': STORAGE_KEYS.SESSIONS,
-                            'agenda': STORAGE_KEYS.SCHEDULE,
-                            'tokens': STORAGE_KEYS.TOKENS,
-                            'fotos': STORAGE_KEYS.PHOTOS,
-                            'evolucoes': STORAGE_KEYS.EVOLUCOES,
-                            
-                            // Inglês (possível formato do Drive)
-                            'patients': STORAGE_KEYS.PATIENTS,
-                            'sessions': STORAGE_KEYS.SESSIONS,
-                            'schedule': STORAGE_KEYS.SCHEDULE,
-                            'photos': STORAGE_KEYS.PHOTOS,
-                            
-                            // Outros nomes possíveis
-                            'paciente': STORAGE_KEYS.PATIENTS,
-                            'clients': STORAGE_KEYS.PATIENTS,
-                            'atendimentos': STORAGE_KEYS.SESSIONS
-                        };
-                        
-                        let importados = 0;
-                        
-                        // Para cada chave no arquivo, salva no localStorage
-                        Object.keys(dados).forEach(key => {
-                            const storageKey = mapping[key];
-                            if (storageKey && dados[key]) {
-                                let dadosParaSalvar = dados[key];
-                                
-                                // Se for pacientes, garantir que anamnese existe e converter valores
-                                if (storageKey === STORAGE_KEYS.PATIENTS) {
-                                    dadosParaSalvar = dados[key].map(p => {
-                                        // Garantir que tem anamnese
-                                        if (!p.anamnese) {
-                                            p.anamnese = JSON.parse(JSON.stringify(ANAMNESE_TEMPLATE));
-                                        }
-                                        // Garantir que tem os campos básicos
-                                        if (!p.id) p.id = Utils.uid();
-                                        if (!p.name && p.nome) p.name = p.nome;
-                                        if (!p.phone && p.telefone) p.phone = p.telefone;
-                                        if (!p.serviceType && p.convenio) p.serviceType = p.convenio;
-                                        if (!p.defaultValue && p.valorPadrao) p.defaultValue = p.valorPadrao;
-                                        
-                                        return p;
-                                    });
-                                }
-                                
-                                // Se for sessões, converter valores
-                                if (storageKey === STORAGE_KEYS.SESSIONS && Array.isArray(dados[key])) {
-                                    dadosParaSalvar = dados[key].map(s => {
-                                        if (s.valor && typeof s.valor === 'string') {
-                                            s.valor = Utils.parseMoney(s.valor);
-                                        }
-                                        if (!s.id) s.id = Utils.uid();
-                                        return s;
-                                    });
-                                }
-                                
-                                this.save(storageKey, dadosParaSalvar);
-                                importados++;
-                            }
-                        });
-                        
-                        if (importados === 0) {
-                            // Tenta importar como backup completo
-                            const backupCompleto = {
-                                pacientes: dados.pacientes || dados.patients || [],
-                                sessoes: dados.sessoes || dados.sessions || [],
-                                agenda: dados.agenda || dados.schedule || { times: DEFAULT_TIMES, recurring: {} },
-                                tokens: dados.tokens || {},
-                                fotos: dados.fotos || dados.photos || {},
-                                evolucoes: dados.evolucoes || {}
-                            };
-                            
-                            if (backupCompleto.pacientes.length > 0) {
-                                this.save(STORAGE_KEYS.PATIENTS, backupCompleto.pacientes);
-                                this.save(STORAGE_KEYS.SESSIONS, backupCompleto.sessoes);
-                                this.save(STORAGE_KEYS.SCHEDULE, backupCompleto.agenda);
-                                this.save(STORAGE_KEYS.TOKENS, backupCompleto.tokens);
-                                this.save(STORAGE_KEYS.PHOTOS, backupCompleto.fotos);
-                                this.save(STORAGE_KEYS.EVOLUCOES, backupCompleto.evolucoes);
-                                importados = 6;
-                            }
-                        }
-                        
-                        if (importados > 0) {
-                            Utils.showAlert(`${importados} categorias importadas com sucesso!`, 'success');
-                        } else {
-                            Utils.showAlert('Nenhum dado reconhecido no arquivo', 'warning');
-                        }
-                        
-                        if (callback) setTimeout(callback, 1500);
-                        
-                    } catch (erro) {
-                        console.error('Erro detalhado:', erro);
-                        Utils.showAlert('Arquivo inválido', 'error');
-                    }
-                };
-                reader.readAsText(file);
-            },
-
-            checkVersion() {
-                const lastVersion = this.load(STORAGE_KEYS.VERSION);
-                if (lastVersion !== APP_VERSION) {
-                    this.save(STORAGE_KEYS.VERSION, APP_VERSION);
-                }
+        function init() {
+            // Carregar dados salvos
+            carregarDados();
+            
+            // Renderizar app
+            renderApp();
+            renderModals();
+            
+            // Aplicar tema
+            if (tema === 'light') {
+                document.body.classList.add('light-mode');
+                $('themeToggle').innerHTML = '<i class="fas fa-moon"></i>';
             }
-        };
+            
+            // Configurar datas
+            $('date').value = Utils.todayISO();
+            $('schedRef').value = Utils.todayISO();
+            $('cStartDate').value = Utils.todayISO();
+            $('cEndDate').value = Utils.addDays(Utils.todayISO(), 30);
+            
+            $('today').innerHTML = new Date().toLocaleDateString('pt-BR', {
+                weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+            });
+
+            // Inicializar serviços
+            Tokens.verificarZerarMensal();
+            Notifications.init();
+
+            // Evento de importação
+            $('importFile')?.addEventListener('change', (e) => {
+                if (e.target.files[0]) {
+                    restaurarBackup(e.target.files[0]);
+                }
+            });
+
+            // Inicializar UI
+            PWA.init();
+            Shortcuts.init();
+            Tabs.init();
+
+            // Renderizar views
+            DailyView.renderPatientSelect();
+            DailyView.render();
+            PatientsView.renderFolders();
+            ScheduleView.render();
+            DashboardView.render();
+            ReportsView.generate();
+
+            setTimeout(() => ScheduleForm.updateDays(), 100);
+            
+            console.log('🚀 Sistema iniciado com sucesso!');
+        }
 
         // ============================================
         // PHOTOS
         // ============================================
         const Photos = {
-            getAll() {
-                return Storage.load(STORAGE_KEYS.PHOTOS, {});
-            },
-
-            save(photos) {
-                Storage.save(STORAGE_KEYS.PHOTOS, photos);
-            },
-
-            get(patientId) {
-                return this.getAll()[patientId] || null;
-            },
-
+            getAll() { return fotos; },
+            save(photos) { fotos = photos; salvarTudo(); },
+            get(patientId) { return fotos[patientId] || null; },
             set(patientId, photoData) {
-                const photos = this.getAll();
-                photos[patientId] = photoData;
-                this.save(photos);
+                fotos[patientId] = photoData;
+                salvarTudo();
             },
-
             remove(patientId) {
-                const photos = this.getAll();
-                delete photos[patientId];
-                this.save(photos);
+                delete fotos[patientId];
+                salvarTudo();
             }
         };
 
         // ============================================
-        // PATIENTS MODEL (COM ANAMNESE COMPLETA)
+        // PATIENTS MODEL
         // ============================================
         const Patients = {
-            getAll() {
-                return Storage.load(STORAGE_KEYS.PATIENTS, []);
-            },
-
-            save(patients) {
-                Storage.save(STORAGE_KEYS.PATIENTS, patients);
-            },
+            getAll() { return pacientes; },
+            save(patients) { pacientes = patients; salvarTudo(); },
 
             add(data) {
-                const patients = this.getAll();
                 const newPatient = {
                     id: Utils.uid(),
                     ...data,
                     anamnese: JSON.parse(JSON.stringify(ANAMNESE_TEMPLATE)),
                     createdAt: new Date().toISOString()
                 };
-                // Preencher dados básicos
                 newPatient.anamnese.nome = data.name || '';
                 newPatient.anamnese.telefone = data.phone || '';
-                patients.push(newPatient);
-                this.save(patients);
+                pacientes.push(newPatient);
+                salvarTudo();
                 return newPatient;
             },
 
             update(id, updates) {
-                const patients = this.getAll();
-                const index = patients.findIndex(p => p.id === id);
+                const index = pacientes.findIndex(p => p.id === id);
                 if (index !== -1) {
-                    patients[index] = { ...patients[index], ...updates };
-                    this.save(patients);
-                    return patients[index];
+                    pacientes[index] = { ...pacientes[index], ...updates };
+                    salvarTudo();
+                    return pacientes[index];
                 }
                 return null;
             },
 
             delete(id) {
-                const patients = this.getAll().filter(p => p.id !== id);
-                this.save(patients);
+                pacientes = pacientes.filter(p => p.id !== id);
+                salvarTudo();
             },
 
             getById(id) {
-                return this.getAll().find(p => p.id === id);
+                return pacientes.find(p => p.id === id);
             },
 
             search(term) {
-                const patients = this.getAll();
-                if (!term) return patients;
-                return patients.filter(p => p.name.toLowerCase().includes(term.toLowerCase()));
+                if (!term) return pacientes;
+                return pacientes.filter(p => p.name.toLowerCase().includes(term.toLowerCase()));
             },
 
             getAnamnese(id) {
@@ -1851,52 +1907,45 @@
         // SESSIONS MODEL
         // ============================================
         const Sessions = {
-            getAll() {
-                return Storage.load(STORAGE_KEYS.SESSIONS, []);
-            },
-
-            save(sessions) {
-                Storage.save(STORAGE_KEYS.SESSIONS, sessions);
-            },
+            getAll() { return sessoes; },
+            save(sessions) { sessoes = sessions; salvarTudo(); },
 
             add(data) {
-                const sessions = this.getAll();
                 const newSession = { id: Utils.uid(), ...data };
-                sessions.push(newSession);
-                this.save(sessions);
+                sessoes.push(newSession);
+                salvarTudo();
                 return newSession;
             },
 
             update(id, updates) {
-                const sessions = this.getAll();
-                const index = sessions.findIndex(s => s.id === id);
+                const index = sessoes.findIndex(s => s.id === id);
                 if (index !== -1) {
-                    sessions[index] = { ...sessions[index], ...updates };
-                    this.save(sessions);
-                    return sessions[index];
+                    sessoes[index] = { ...sessoes[index], ...updates };
+                    salvarTudo();
+                    return sessoes[index];
                 }
                 return null;
             },
 
             delete(id) {
-                const sessions = this.getAll().filter(s => s.id !== id);
-                this.save(sessions);
+                sessoes = sessoes.filter(s => s.id !== id);
+                salvarTudo();
             },
 
             getById(id) {
-                return this.getAll().find(s => s.id === id);
+                return sessoes.find(s => s.id === id);
             },
 
             getByDate(date) {
-                return this.getAll().filter(s => s.date === date);
+                return sessoes.filter(s => s.date === date);
             },
 
             getByPatient(patientId) {
-                return this.getAll().filter(s => s.patientId === patientId);
+                return sessoes.filter(s => s.patientId === patientId);
             },
 
             getByMonth(month) {
-                return this.getAll().filter(s => s.date.startsWith(month));
+                return sessoes.filter(s => s.date.startsWith(month));
             },
 
             toggleDid(id) {
@@ -1947,72 +1996,57 @@
         // SCHEDULE MODEL
         // ============================================
         const Schedule = {
-            get() {
-                return Storage.load(STORAGE_KEYS.SCHEDULE, { times: DEFAULT_TIMES, recurring: {} });
-            },
-
-            save(schedule) {
-                Storage.save(STORAGE_KEYS.SCHEDULE, schedule);
-            },
-
-            getTimes() {
-                return this.get().times || [];
-            },
+            get() { return agenda; },
+            save(schedule) { agenda = schedule; salvarTudo(); },
+            getTimes() { return agenda.times || []; },
 
             addTime(time) {
-                const schedule = this.get();
-                if (!schedule.times.includes(time)) {
-                    schedule.times.push(time);
-                    schedule.times.sort();
-                    this.save(schedule);
+                if (!agenda.times.includes(time)) {
+                    agenda.times.push(time);
+                    agenda.times.sort();
+                    salvarTudo();
                     return true;
                 }
                 return false;
             },
 
             removeTime(time) {
-                const schedule = this.get();
-                schedule.times = schedule.times.filter(t => t !== time);
-                this.save(schedule);
+                agenda.times = agenda.times.filter(t => t !== time);
+                salvarTudo();
             },
 
             resetTimes() {
-                const schedule = this.get();
-                schedule.times = DEFAULT_TIMES;
-                this.save(schedule);
+                agenda.times = DEFAULT_TIMES;
+                salvarTudo();
             },
 
             getRecurring() {
-                return this.get().recurring || {};
+                return agenda.recurring || {};
             },
 
             addRecurring(day, time, patientId, serviceType) {
-                const schedule = this.get();
-                if (!schedule.recurring) schedule.recurring = {};
+                if (!agenda.recurring) agenda.recurring = {};
                 const key = Utils.recurKey(day, time);
-                schedule.recurring[key] = { patientId, serviceType, startDate: Utils.todayISO() };
-                this.save(schedule);
+                agenda.recurring[key] = { patientId, serviceType, startDate: Utils.todayISO() };
+                salvarTudo();
             },
 
             removeRecurring(day, time) {
-                const schedule = this.get();
                 const key = Utils.recurKey(day, time);
-                if (schedule.recurring) {
-                    delete schedule.recurring[key];
-                    this.save(schedule);
+                if (agenda.recurring) {
+                    delete agenda.recurring[key];
+                    salvarTudo();
                 }
             },
 
             getByDayTime(day, time) {
-                const recurring = this.getRecurring();
                 const key = Utils.recurKey(day, time);
-                return recurring[key] || null;
+                return agenda.recurring?.[key] || null;
             },
 
             getByPatient(patientId) {
-                const recurring = this.getRecurring();
                 const result = [];
-                Object.entries(recurring).forEach(([key, entry]) => {
+                Object.entries(agenda.recurring || {}).forEach(([key, entry]) => {
                     if (entry.patientId === patientId) {
                         const [day, time] = key.split('|');
                         result.push({ day: parseInt(day), time, ...entry });
@@ -2022,28 +2056,25 @@
             },
 
             removeByPatient(patientId) {
-                const schedule = this.get();
-                if (schedule.recurring) {
-                    Object.keys(schedule.recurring).forEach(key => {
-                        if (schedule.recurring[key].patientId === patientId) {
-                            delete schedule.recurring[key];
+                if (agenda.recurring) {
+                    Object.keys(agenda.recurring).forEach(key => {
+                        if (agenda.recurring[key].patientId === patientId) {
+                            delete agenda.recurring[key];
                         }
                     });
-                    this.save(schedule);
+                    salvarTudo();
                 }
             },
 
             getUpcoming(limit = 5) {
                 const agora = Utils.nowTime();
                 const refDay = new Date().getDay();
-                const recurring = this.getRecurring();
-                const patients = Patients.getAll();
                 const result = [];
                 
-                Object.entries(recurring).forEach(([key, entry]) => {
+                Object.entries(agenda.recurring || {}).forEach(([key, entry]) => {
                     const [day, time] = key.split('|');
                     const dayNum = parseInt(day);
-                    const patient = patients.find(p => p.id === entry.patientId);
+                    const patient = pacientes.find(p => p.id === entry.patientId);
                     
                     let daysToAdd = dayNum - refDay;
                     if (daysToAdd < 0) daysToAdd += 7;
@@ -2069,52 +2100,39 @@
         // TOKENS MODEL
         // ============================================
         const Tokens = {
-            getAll() {
-                return Storage.load(STORAGE_KEYS.TOKENS, {});
-            },
-
-            save(tokens) {
-                Storage.save(STORAGE_KEYS.TOKENS, tokens);
-            },
-
-            getBySession(sessionId) {
-                return this.getAll()[sessionId] || null;
-            },
+            getAll() { return tokens; },
+            save(tokensData) { tokens = tokensData; salvarTudo(); },
+            getBySession(sessionId) { return tokens[sessionId] || null; },
 
             register(sessionId, data) {
-                const tokens = this.getAll();
                 tokens[sessionId] = { ...data, registeredAt: new Date().toISOString() };
-                this.save(tokens);
+                salvarTudo();
                 return tokens[sessionId];
             },
 
             updateStatus(tokenId, status) {
-                const tokens = this.getAll();
                 if (tokens[tokenId]) {
                     tokens[tokenId].status = status;
-                    this.save(tokens);
+                    salvarTudo();
                     return true;
                 }
                 return false;
             },
 
             delete(tokenId) {
-                const tokens = this.getAll();
                 delete tokens[tokenId];
-                this.save(tokens);
+                salvarTudo();
             },
 
             deleteBySession(sessionId) {
-                const tokens = this.getAll();
                 delete tokens[sessionId];
-                this.save(tokens);
+                salvarTudo();
             },
 
             addManual(patientId, month) {
                 const [ano, mes] = month.split('-');
                 const data = `${ano}-${mes}-01`;
                 const id = Utils.uid();
-                const tokens = this.getAll();
                 
                 tokens[id] = {
                     id,
@@ -2126,17 +2144,15 @@
                     registeredAt: new Date().toISOString()
                 };
                 
-                this.save(tokens);
+                salvarTudo();
                 return tokens[id];
             },
 
             getByPatient(patientId) {
-                const tokens = this.getAll();
-                const sessions = Sessions.getAll();
                 const result = [];
                 
                 Object.entries(tokens).forEach(([id, token]) => {
-                    const session = sessions.find(s => s.id === id);
+                    const session = sessoes.find(s => s.id === id);
                     if (session && session.patientId === patientId) {
                         result.push({ id, ...token, sessionDate: session.date });
                     } else if (!session && token.patientId === patientId) {
@@ -2148,11 +2164,11 @@
             },
 
             countByPatient(patientId, status, month = null) {
-                const tokens = this.getByPatient(patientId);
+                const tokensList = this.getByPatient(patientId);
                 const hoje = new Date();
                 const mesAlvo = month || `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}`;
                 
-                return tokens.filter(t => {
+                return tokensList.filter(t => {
                     if (status && t.status !== status) return false;
                     const dataToken = new Date(t.date + 'T12:00:00');
                     const mesToken = `${dataToken.getFullYear()}-${String(dataToken.getMonth() + 1).padStart(2, '0')}`;
@@ -2161,7 +2177,6 @@
             },
 
             countTotalEnviados(month = null) {
-                const tokens = this.getAll();
                 const hoje = new Date();
                 const mesAlvo = month || `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}`;
                 
@@ -2179,11 +2194,10 @@
                 const mes = hoje.getMonth();
                 const ano = hoje.getFullYear();
                 
-                const ultimoReset = Storage.load(STORAGE_KEYS.ULTIMO_RESET);
+                const ultimoReset = localStorage.getItem(STORAGE_KEYS.ULTIMO_RESET);
                 const chaveReset = `${ano}-${mes}`;
                 
                 if (dia === 1 && ultimoReset !== chaveReset) {
-                    const tokens = this.getAll();
                     const tokensReset = {};
                     
                     Object.entries(tokens).forEach(([id, token]) => {
@@ -2192,10 +2206,11 @@
                         }
                     });
                     
-                    this.save(tokensReset);
-                    Storage.save(STORAGE_KEYS.ULTIMO_RESET, chaveReset);
+                    tokens = tokensReset;
+                    salvarTudo();
+                    localStorage.setItem(STORAGE_KEYS.ULTIMO_RESET, chaveReset);
                     
-                    Utils.showAlert('Tokens reiniciados para o novo mês', 'info');
+                    Utils.showAlert('🔄 Tokens reiniciados para o novo mês', 'info');
                     return true;
                 }
                 return false;
@@ -2206,31 +2221,21 @@
         // EVOLUCOES MODEL
         // ============================================
         const Evolucoes = {
-            getAll() {
-                return Storage.load(STORAGE_KEYS.EVOLUCOES, {});
-            },
-
-            save(evolucoes) {
-                Storage.save(STORAGE_KEYS.EVOLUCOES, evolucoes);
-            },
-
-            getByPatient(patientId) {
-                return this.getAll()[patientId] || [];
-            },
+            getAll() { return evolucoes; },
+            save(evolucoesData) { evolucoes = evolucoesData; salvarTudo(); },
+            getByPatient(patientId) { return evolucoes[patientId] || []; },
 
             add(patientId, data) {
-                const evolucoes = this.getAll();
                 if (!evolucoes[patientId]) evolucoes[patientId] = [];
                 
                 const nova = { id: Utils.uid(), ...data, createdAt: new Date().toISOString() };
                 evolucoes[patientId].push(nova);
                 evolucoes[patientId].sort((a, b) => b.date.localeCompare(a.date));
-                this.save(evolucoes);
+                salvarTudo();
                 return nova;
             },
 
             update(patientId, evolucaoId, updates) {
-                const evolucoes = this.getAll();
                 if (!evolucoes[patientId]) return null;
                 
                 const index = evolucoes[patientId].findIndex(e => e.id === evolucaoId);
@@ -2240,18 +2245,17 @@
                         ...updates,
                         updatedAt: new Date().toISOString()
                     };
-                    this.save(evolucoes);
+                    salvarTudo();
                     return evolucoes[patientId][index];
                 }
                 return null;
             },
 
             delete(patientId, evolucaoId) {
-                const evolucoes = this.getAll();
                 if (evolucoes[patientId]) {
                     evolucoes[patientId] = evolucoes[patientId].filter(e => e.id !== evolucaoId);
                     if (evolucoes[patientId].length === 0) delete evolucoes[patientId];
-                    this.save(evolucoes);
+                    salvarTudo();
                 }
             }
         };
@@ -2262,7 +2266,6 @@
         const AIService = {
             generateSuggestion(patientId, currentText = '') {
                 const patient = Patients.getById(patientId);
-                const evolucoes = Evolucoes.getByPatient(patientId);
                 
                 const templates = {
                     cassems: [
@@ -2275,11 +2278,6 @@
                         "Sessão focada em exercícios de voz e projeção. Paciente demonstrou maior controle da intensidade vocal. Orientado a praticar leitura em voz alta em casa.",
                         "Progresso significativo na terapia. Paciente mais confiante ao se comunicar. Atividades de repetição e jogos verbais foram bem recebidas."
                     ],
-                    unimed: [
-                        "Paciente apresentou evolução na coordenação motora oral. Conseguiu realizar todos os exercícios propostos com maior precisão. Manter rotina de exercícios diários.",
-                        "Sessão com foco em linguagem expressiva. Paciente demonstrou aumento no vocabulário e melhor estruturação de frases. Continuar estimulando em casa.",
-                        "Boa evolução no quadro. Paciente mais participativo e engajado nas atividades. Próximas sessões focarão em generalização dos aprendizados."
-                    ],
                     default: [
                         "Paciente evoluiu bem na sessão de hoje, participando ativamente de todas as atividades propostas. Demonstrou boa compreensão das orientações. Manter frequência das sessões.",
                         "Sessão produtiva com foco nos objetivos terapêuticos. Paciente colaborativo e motivado. Reforçar exercícios em casa conforme orientado.",
@@ -2290,7 +2288,6 @@
                 let templateList = templates.default;
                 if (patient?.serviceType === 'cassems') templateList = templates.cassems;
                 else if (patient?.serviceType === 'particular') templateList = templates.particular;
-                else if (patient?.serviceType === 'unimed') templateList = templates.unimed;
 
                 if (currentText) {
                     return [
@@ -2645,10 +2642,9 @@
 
             renderProximos(agora) {
                 const hojeDay = new Date().getDay();
-                const schedule = Schedule.get();
                 const proximos = [];
                 
-                Object.entries(schedule.recurring || {}).forEach(([key, entry]) => {
+                Object.entries(agenda.recurring || {}).forEach(([key, entry]) => {
                     const [day, time] = key.split('|');
                     if (parseInt(day) === hojeDay) {
                         const [h1, m1] = time.split(':').map(Number);
@@ -2692,14 +2688,11 @@
             },
 
             renderTokens(sessions) {
-                const patients = Patients.getAll();
-                
                 const cassemsHoje = sessions.filter(s => {
-                    const p = patients.find(pat => pat.id === s.patientId);
+                    const p = pacientes.find(pat => pat.id === s.patientId);
                     return p?.serviceType === 'cassems';
                 });
 
-                const tokens = Tokens.getAll();
                 const tokensHoje = cassemsHoje.map(s => ({
                     session: s,
                     token: tokens[s.id]
@@ -2718,9 +2711,7 @@
 
             renderAniversariantes() {
                 const month = new Date().getMonth() + 1;
-                const patients = Patients.getAll();
-                
-                const aniversariantes = patients.filter(p => {
+                const aniversariantes = pacientes.filter(p => {
                     if (!p.birth) return false;
                     return parseInt(p.birth.split('-')[1]) === month;
                 });
@@ -2762,12 +2753,10 @@
             },
 
             renderSessionsList(date, search) {
-                const sessions = Sessions.getByDate(date);
-                const patients = Patients.getAll();
-                const tokens = Tokens.getAll();
+                const sessionsDia = Sessions.getByDate(date);
                 
-                const filtered = sessions.filter(s => {
-                    const p = patients.find(pat => pat.id === s.patientId);
+                const filtered = sessionsDia.filter(s => {
+                    const p = pacientes.find(pat => pat.id === s.patientId);
                     return !search || (p?.name || '').toLowerCase().includes(search);
                 });
                 
@@ -2780,28 +2769,26 @@
                 }
                 
                 list.innerHTML = filtered.map(s => {
-                    const p = patients.find(pat => pat.id === s.patientId);
+                    const p = pacientes.find(pat => pat.id === s.patientId);
                     const token = tokens[s.id];
-                    const photo = Photos.get(s.patientId);
+                    const photo = fotos[s.patientId];
                     return Components.sessionCard(s, p, token, photo, true);
                 }).join('');
             },
 
             renderSummary(date) {
-                const sessions = Sessions.getByDate(date);
+                const sessionsDia = Sessions.getByDate(date);
                 
-                $('sumDay').innerHTML = `Total: ${sessions.length}`;
-                $('sumMoney').innerHTML = `Total: ${Utils.fmtMoney(sessions.reduce((s, r) => s + (Number(r.value) || 0), 0))}`;
-                $('sumAbsences').innerHTML = sessions.filter(s => s.did === 'nao').length.toString();
+                $('sumDay').innerHTML = `Total: ${sessionsDia.length}`;
+                $('sumMoney').innerHTML = `Total: ${Utils.fmtMoney(sessionsDia.reduce((s, r) => s + (Number(r.value) || 0), 0))}`;
+                $('sumAbsences').innerHTML = sessionsDia.filter(s => s.did === 'nao').length.toString();
             },
 
             renderCassemsCount(date) {
-                const sessions = Sessions.getByDate(date);
-                const patients = Patients.getAll();
-                const tokens = Tokens.getAll();
+                const sessionsDia = Sessions.getByDate(date);
                 
-                const cassemsHoje = sessions.filter(s => {
-                    const p = patients.find(pat => pat.id === s.patientId);
+                const cassemsHoje = sessionsDia.filter(s => {
+                    const p = pacientes.find(pat => pat.id === s.patientId);
                     return p?.serviceType === 'cassems';
                 });
 
@@ -2829,12 +2816,11 @@
             },
 
             renderPatientSelect() {
-                const patients = Patients.getAll();
                 const sel = $('pPatient');
                 if (!sel) return;
                 
-                sel.innerHTML = patients.length ?
-                    patients.map(p => `<option value="${p.id}">${Utils.escapeHtml(p.name)}${p.serviceType === 'cassems' ? ' (Cassems)' : ''}</option>`).join('') :
+                sel.innerHTML = pacientes.length ?
+                    pacientes.map(p => `<option value="${p.id}">${Utils.escapeHtml(p.name)}${p.serviceType === 'cassems' ? ' (Cassems)' : ''}</option>`).join('') :
                     '<option value="">(Cadastre pacientes)</option>';
                 
                 this.updateDefaultHint();
@@ -2845,8 +2831,8 @@
                 if (!date) return;
                 
                 if (confirm(`Limpar todas as sessões de ${Utils.formatDate(date)}?`)) {
-                    const sessions = Sessions.getAll().filter(s => s.date !== date);
-                    Sessions.save(sessions);
+                    sessoes = sessoes.filter(s => s.date !== date);
+                    salvarTudo();
                     
                     Sessions.getByDate(date).forEach(s => Tokens.deleteBySession(s.id));
                     
@@ -2859,7 +2845,7 @@
 
             findInDay() {
                 const term = $('search')?.value.toLowerCase() || '';
-                const patient = Patients.getAll().find(p => p.name.toLowerCase().includes(term));
+                const patient = pacientes.find(p => p.name.toLowerCase().includes(term));
                 
                 if (patient) {
                     $('pPatient').value = patient.id;
@@ -2876,10 +2862,14 @@
                 Tokens.verificarZerarMensal();
                 
                 const search = $('pSearch')?.value.toLowerCase() || '';
-                let patients = Patients.search(search);
+                let patientsList = pacientes;
+
+                if (search) {
+                    patientsList = pacientes.filter(p => p.name.toLowerCase().includes(search));
+                }
 
                 if (debtFilterActive) {
-                    patients = patients.filter(p => {
+                    patientsList = patientsList.filter(p => {
                         const stats = Sessions.getPatientStats(p.id);
                         return stats.debt > 0;
                     });
@@ -2888,12 +2878,12 @@
                 const container = $('patientFolders');
                 if (!container) return;
 
-                if (patients.length === 0) {
+                if (patientsList.length === 0) {
                     container.innerHTML = '<div class="muted" style="text-align: center; padding: 2rem;">Nenhum paciente encontrado</div>';
                     return;
                 }
 
-                container.innerHTML = patients.map(p => {
+                container.innerHTML = patientsList.map(p => {
                     const stats = Sessions.getPatientStats(p.id);
                     return Components.patientFolderCard(p, stats);
                 }).join('');
@@ -2903,7 +2893,7 @@
                 openedPatientId = id;
                 const p = Patients.getById(id);
                 const photo = Photos.get(id);
-                const evolucoes = Evolucoes.getByPatient(id);
+                const evolucoesPaciente = Evolucoes.getByPatient(id);
                 
                 const foldersPane = $('foldersPane');
                 const folderOpenPane = $('folderOpenPane');
@@ -3025,18 +3015,17 @@
 
             renderHistorico(id) {
                 const p = Patients.getById(id);
-                const sessions = Sessions.getByPatient(id).sort((a, b) => b.date.localeCompare(a.date));
-                const tokens = Tokens.getAll();
+                const sessionsPaciente = Sessions.getByPatient(id).sort((a, b) => b.date.localeCompare(a.date));
                 const container = $('patientHistory');
                 
                 if (!container) return;
                 
-                if (sessions.length === 0) {
+                if (sessionsPaciente.length === 0) {
                     container.innerHTML = '<div class="muted" style="text-align: center; padding: 2rem;">Nenhuma sessão registrada</div>';
                     return;
                 }
                 
-                container.innerHTML = sessions.map(s => {
+                container.innerHTML = sessionsPaciente.map(s => {
                     const token = tokens[s.id];
                     const tokenInfo = token ? 
                         `<div style="font-size: 0.875rem; color: var(--text-secondary); margin-top: 0.25rem;">
@@ -3075,12 +3064,12 @@
             },
 
             renderEvolucoesSection(id) {
-                const evolucoes = Evolucoes.getByPatient(id);
+                const evolucoesPaciente = Evolucoes.getByPatient(id);
                 const container = $('evolucoesSection');
                 
                 if (!container) return;
                 
-                if (evolucoes.length === 0) {
+                if (evolucoesPaciente.length === 0) {
                     container.innerHTML = `
                         <div class="card" style="text-align: center; padding: 2rem;">
                             <i class="fas fa-robot" style="font-size: 3rem; color: #8b5cf6; margin-bottom: 1rem;"></i>
@@ -3110,8 +3099,8 @@
                 const container = $('evolucoesList');
                 if (!container) return;
                 
-                const evolucoes = Evolucoes.getByPatient(id);
-                container.innerHTML = evolucoes.map(ev => Components.evolucaoCard(ev)).join('');
+                const evolucoesPaciente = Evolucoes.getByPatient(id);
+                container.innerHTML = evolucoesPaciente.map(ev => Components.evolucaoCard(ev)).join('');
             },
 
             closeFolder() {
@@ -3135,16 +3124,13 @@
             openModal() {
                 if (!openedPatientId) return;
                 
-                // Carregar dados no modal
                 const anamnese = Patients.getAnamnese(openedPatientId);
                 
-                // Preencher todos os campos
                 Object.keys(anamnese).forEach(key => {
                     const input = document.getElementById(`anamnese_${key}`);
                     if (input) input.value = anamnese[key] || '';
                 });
                 
-                // Reset para primeira tab
                 document.querySelectorAll('.anamnese-section').forEach(tab => tab.classList.add('hidden'));
                 document.getElementById('anamnese-tab-identificacao')?.classList.remove('hidden');
                 
@@ -3163,7 +3149,6 @@
                 
                 const anamnese = JSON.parse(JSON.stringify(ANAMNESE_TEMPLATE));
                 
-                // Coletar todos os campos
                 Object.keys(anamnese).forEach(key => {
                     const input = document.getElementById(`anamnese_${key}`);
                     if (input) anamnese[key] = input.value;
@@ -3326,11 +3311,10 @@
             },
 
             rename() {
-                const patients = Patients.getAll();
-                const idx = patients.findIndex(p => p.id === openedPatientId);
+                const index = pacientes.findIndex(p => p.id === openedPatientId);
                 
-                if (idx >= 0) {
-                    const newName = prompt('Novo nome:', patients[idx].name);
+                if (index >= 0) {
+                    const newName = prompt('Novo nome:', pacientes[index].name);
                     if (newName) {
                         Patients.update(openedPatientId, { name: newName.trim() });
                         PatientsView.openFolder(openedPatientId);
@@ -3345,15 +3329,12 @@
                 
                 Patients.delete(openedPatientId);
                 
-                const sessions = Sessions.getAll().filter(s => s.patientId !== openedPatientId);
-                Sessions.save(sessions);
-                
+                sessoes = sessoes.filter(s => s.patientId !== openedPatientId);
                 Schedule.removeByPatient(openedPatientId);
                 Photos.remove(openedPatientId);
                 
-                const evolucoes = Evolucoes.getAll();
                 delete evolucoes[openedPatientId];
-                Evolucoes.save(evolucoes);
+                salvarTudo();
 
                 PatientsView.closeFolder();
                 this.refreshAll();
@@ -3428,12 +3409,12 @@
         const ScheduleActions = {
             handleSlotClick(day, time) {
                 const current = Schedule.getByDayTime(day, time);
-                const patients = Patients.getAll();
+                const patientsList = pacientes;
 
                 if (current) {
                     this.handleRemoveSlot(day, time, current);
                 } else {
-                    this.handleAddSlot(day, time, patients);
+                    this.handleAddSlot(day, time, patientsList);
                 }
             },
 
@@ -3446,8 +3427,13 @@
                 }
             },
 
-            handleAddSlot(day, time, patients) {
-                const patientList = patients.map((p, i) => `${i + 1} - ${p.name}`).join('\n');
+            handleAddSlot(day, time, patientsList) {
+                if (patientsList.length === 0) {
+                    Utils.showAlert('Cadastre um paciente primeiro', 'warning');
+                    return;
+                }
+                
+                const patientList = patientsList.map((p, i) => `${i + 1} - ${p.name}`).join('\n');
                 const choice = prompt(
                     `Agendar em ${DAYS[day]} às ${time}\n\n` +
                     `Digite o NÚMERO do paciente:\n${patientList}\n\n` +
@@ -3456,8 +3442,8 @@
 
                 if (choice && choice !== '0') {
                     const idx = parseInt(choice) - 1;
-                    if (idx >= 0 && idx < patients.length) {
-                        const patient = patients[idx];
+                    if (idx >= 0 && idx < patientsList.length) {
+                        const patient = patientsList[idx];
                         Schedule.addRecurring(day, time, patient.id, patient.serviceType);
                         ScheduleView.render();
                         Utils.showAlert(`${patient.name} agendado!`, 'success');
@@ -3551,15 +3537,15 @@
 
             renderManualTokensList(patientId) {
                 const container = $('manualTokensList');
-                const tokens = Tokens.getByPatient(patientId);
+                const tokensList = Tokens.getByPatient(patientId);
                 
-                if (tokens.length === 0) {
+                if (tokensList.length === 0) {
                     container.innerHTML = '<div class="muted" style="text-align: center; padding: 2rem;">Nenhum token registrado</div>';
                     return;
                 }
                 
                 const porMes = {};
-                tokens.forEach(token => {
+                tokensList.forEach(token => {
                     const dataToken = new Date(token.date + 'T12:00:00');
                     const mesToken = `${dataToken.getFullYear()}-${String(dataToken.getMonth() + 1).padStart(2, '0')}`;
                     if (!porMes[mesToken]) porMes[mesToken] = [];
@@ -3717,8 +3703,8 @@
             openEdit(evolucaoId) {
                 if (!openedPatientId) return;
                 
-                const evolucoes = Evolucoes.getByPatient(openedPatientId);
-                const evolucao = evolucoes.find(e => e.id === evolucaoId);
+                const evolucoesPaciente = Evolucoes.getByPatient(openedPatientId);
+                const evolucao = evolucoesPaciente.find(e => e.id === evolucaoId);
                 if (!evolucao) return;
                 
                 currentEvolucaoId = evolucaoId;
@@ -3779,13 +3765,10 @@
             render() {
                 Tokens.verificarZerarMensal();
                 
-                const schedule = Schedule.get();
-                const times = schedule.times || [];
-                const patients = Patients.getAll();
-                const sessions = Sessions.getAll();
+                const times = agenda.times || [];
                 
                 const stats = {};
-                sessions.forEach(s => {
+                sessoes.forEach(s => {
                     if (!stats[s.patientId]) {
                         stats[s.patientId] = { realizadas: 0, faltas: 0, total: 0 };
                     }
@@ -3794,11 +3777,11 @@
                     stats[s.patientId].total++;
                 });
 
-                this.renderTable(times, patients, stats);
+                this.renderTable(times, stats);
             },
 
-            renderTable(times, patients, stats) {
-                const recurring = Schedule.getRecurring();
+            renderTable(times, stats) {
+                const recurring = agenda.recurring || {};
                 const table = $('schedTable');
                 if (!table) return;
 
@@ -3814,7 +3797,7 @@
                         const entry = recurring[key];
                         
                         if (entry) {
-                            const patient = patients.find(p => p.id === entry.patientId);
+                            const patient = pacientes.find(p => p.id === entry.patientId);
                             const patientStats = stats[patient?.id] || { realizadas: 0, faltas: 0, total: 0 };
                             html += Components.scheduleSlot(day, time, entry, patient, patientStats);
                         } else {
@@ -3878,7 +3861,6 @@
 
             renderMonthSummary(month) {
                 const stats = Sessions.getMonthStats(month);
-                const patients = Patients.getAll();
                 
                 $('monthSummary').innerHTML = `
                     <div>Sessões: ${stats.total}</div>
@@ -3892,16 +3874,12 @@
                     <div>A receber: ${Utils.fmtMoney(stats.aReceber)}</div>
                 `;
                 
-                $('activePatients').innerHTML = patients.length.toString();
+                $('activePatients').innerHTML = pacientes.length.toString();
             },
 
             renderTokensReport() {
-                const sessions = Sessions.getAll();
-                const patients = Patients.getAll();
-                const tokens = Tokens.getAll();
-                
-                const sessoesCassems = sessions.filter(s => {
-                    const p = patients.find(pat => pat.id === s.patientId);
+                const sessoesCassems = sessoes.filter(s => {
+                    const p = pacientes.find(pat => pat.id === s.patientId);
                     return p?.serviceType === 'cassems';
                 });
 
@@ -3916,11 +3894,8 @@
             },
 
             renderDebtors() {
-                const patients = Patients.getAll();
-                const sessions = Sessions.getAll();
-                
-                const debtors = patients.map(p => {
-                    const debt = sessions.filter(s => s.patientId === p.id && s.paid !== 'pago')
+                const debtors = pacientes.map(p => {
+                    const debt = sessoes.filter(s => s.patientId === p.id && s.paid !== 'pago')
                         .reduce((sum, s) => sum + (Number(s.value) || 0), 0);
                     return { name: p.name, debt };
                 }).filter(d => d.debt > 0).sort((a, b) => b.debt - a.debt).slice(0, 5);
@@ -4076,7 +4051,7 @@
                 notificationsEnabled = permission === 'granted';
                 
                 if (notificationsEnabled) {
-                    Storage.save(STORAGE_KEYS.NOTIFICATIONS, 'granted');
+                    localStorage.setItem(STORAGE_KEYS.NOTIFICATIONS, 'granted');
                     this.startChecker();
                     Utils.showAlert('Notificações ativadas!', 'success');
                     $('notificationModal')?.classList.add('hidden');
@@ -4095,9 +4070,8 @@
                 
                 const agora = Utils.nowTime();
                 const hoje = new Date().getDay();
-                const schedule = Schedule.get();
                 
-                Object.entries(schedule.recurring || {}).forEach(([key, entry]) => {
+                Object.entries(agenda.recurring || {}).forEach(([key, entry]) => {
                     const [day, time] = key.split('|');
                     if (parseInt(day) === hoje) {
                         const [h1, m1] = time.split(':').map(Number);
@@ -4118,13 +4092,13 @@
             },
 
             init() {
-                const status = Storage.load(STORAGE_KEYS.NOTIFICATIONS);
+                const status = localStorage.getItem(STORAGE_KEYS.NOTIFICATIONS);
                 if (status === 'granted') {
                     notificationsEnabled = true;
                     this.startChecker();
                 } else if (window.Notification && Notification.permission === 'granted') {
                     notificationsEnabled = true;
-                    Storage.save(STORAGE_KEYS.NOTIFICATIONS, 'granted');
+                    localStorage.setItem(STORAGE_KEYS.NOTIFICATIONS, 'granted');
                     this.startChecker();
                 } else if (window.Notification && Notification.permission !== 'denied') {
                     setTimeout(() => $('notificationModal')?.classList.remove('hidden'), 30000);
@@ -4198,14 +4172,13 @@
         const Theme = {
             toggle() {
                 document.body.classList.toggle('light-mode');
-                const isLight = document.body.classList.contains('light-mode');
-                Storage.save(STORAGE_KEYS.THEME, isLight ? 'light' : 'dark');
-                $('themeToggle').innerHTML = isLight ? '<i class="fas fa-moon"></i>' : '<i class="fas fa-sun"></i>';
+                tema = document.body.classList.contains('light-mode') ? 'light' : 'dark';
+                localStorage.setItem(STORAGE_KEYS.THEME, tema);
+                $('themeToggle').innerHTML = tema === 'light' ? '<i class="fas fa-moon"></i>' : '<i class="fas fa-sun"></i>';
             },
 
             init() {
-                const saved = Storage.load(STORAGE_KEYS.THEME);
-                if (saved === 'light') {
+                if (tema === 'light') {
                     document.body.classList.add('light-mode');
                     $('themeToggle').innerHTML = '<i class="fas fa-moon"></i>';
                 }
@@ -4261,12 +4234,15 @@
                                 <button class="theme-toggle" id="installPWA" style="display: none;" onclick="PWA.install()">
                                     <i class="fas fa-download"></i>
                                 </button>
+                                <button class="save-button" onclick="salvarTudo()">
+                                    <i class="fas fa-save"></i> Salvar Agora
+                                </button>
                                 <div class="backup-bar">
-                                    <button onclick="Storage.exportAll()" title="Exportar">
-                                        <i class="fas fa-download"></i>
+                                    <button onclick="backupCompleto()" title="Backup Completo">
+                                        <i class="fas fa-database"></i> Backup
                                     </button>
-                                    <button onclick="$('importFile').click()" title="Importar">
-                                        <i class="fas fa-upload"></i>
+                                    <button onclick="$('importFile').click()" title="Restaurar Backup">
+                                        <i class="fas fa-upload"></i> Restaurar
                                     </button>
                                     <button onclick="Storage.clear()" title="Reset" style="color: var(--error);">
                                         <i class="fas fa-trash"></i>
@@ -5427,44 +5403,8 @@
         }
 
         // ============================================
-        // INIT
+        // INICIALIZAÇÃO
         // ============================================
-        function init() {
-            Storage.checkVersion();
-            renderApp();
-            renderModals();
-            Theme.init();
-
-            $('date').value = Utils.todayISO();
-            $('schedRef').value = Utils.todayISO();
-            $('cStartDate').value = Utils.todayISO();
-            $('cEndDate').value = Utils.addDays(Utils.todayISO(), 30);
-            
-            $('today').innerHTML = new Date().toLocaleDateString('pt-BR', {
-                weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
-            });
-
-            Tokens.verificarZerarMensal();
-            Notifications.init();
-
-            $('importFile')?.addEventListener('change', (e) => {
-                Storage.importFromFile(e.target.files[0], () => location.reload());
-            });
-
-            PWA.init();
-            Shortcuts.init();
-            Tabs.init();
-
-            DailyView.renderPatientSelect();
-            DailyView.render();
-            PatientsView.renderFolders();
-            ScheduleView.render();
-            DashboardView.render();
-            ReportsView.generate();
-
-            setTimeout(() => ScheduleForm.updateDays(), 100);
-        }
-
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', init);
         } else {
