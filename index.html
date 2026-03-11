@@ -252,6 +252,18 @@
             font-size: 1rem;
         }
 
+        /* ===== FILTRO DE TOKENS ===== */
+        .token-filter-btn {
+            background: var(--warning-light);
+            color: var(--warning-500);
+            border: 1px solid var(--warning-500);
+        }
+
+        .token-filter-btn.active {
+            background: var(--warning-500);
+            color: white;
+        }
+
         /* ===== NAVEGAÇÃO ===== */
         .nav-tabs {
             background: var(--bg-secondary);
@@ -1307,17 +1319,17 @@
         // ============================================
         // CONFIGURAÇÕES
         // ============================================
-        const APP_VERSION = '20.0.0';
+        const APP_VERSION = '22.0.0';
         const CLINIC_NAME = "ClinicFlow Pro";
         const CLINIC_SUBTITLE = "Gestão de Clínica Profissional";
         const CLINIC_CRFA = "CRFa 5-13766";
 
         const STORAGE_KEYS = {
-            PATIENTS: "clinicflow_patients_v20",
-            SESSIONS: "clinicflow_sessions_v20",
-            SCHEDULE: "clinicflow_schedule_v20",
-            TOKENS: "clinicflow_tokens_v20",
-            THEME: "clinicflow_theme_v20",
+            PATIENTS: "clinicflow_patients_v22",
+            SESSIONS: "clinicflow_sessions_v22",
+            SCHEDULE: "clinicflow_schedule_v22",
+            TOKENS: "clinicflow_tokens_v22",
+            THEME: "clinicflow_theme_v22",
             VERSION: "clinicflow_version",
             NOTIFICATIONS: "clinicflow_notifications",
             PHOTOS: "clinicflow_photos",
@@ -1346,7 +1358,6 @@
         // TEMPLATE ANAMNESE COMPLETA
         // ============================================
         const ANAMNESE_TEMPLATE = {
-            // Identificação
             nome: '',
             dataNascimento: '',
             idade: '',
@@ -1355,20 +1366,14 @@
             endereco: '',
             telefone: '',
             email: '',
-            
-            // Responsável
             responsavel: '',
             parentesco: '',
             telefoneResponsavel: '',
-            
-            // Queixa Principal
             queixaPrincipal: '',
             inicioQueixa: '',
             quemObservou: '',
             evolucaoQueixa: '',
             tratamentosAnteriores: '',
-            
-            // História Gestacional
             gestacaoDesejada: '',
             intercorrenciasGestacao: '',
             medicamentosGestacao: '',
@@ -1383,8 +1388,6 @@
             ictericia: '',
             incubadora: '',
             altaComDias: '',
-            
-            // Desenvolvimento
             sustentouCabeca: '',
             sentou: '',
             engatinhou: '',
@@ -1392,8 +1395,6 @@
             primeirasPalavras: '',
             formouFrases: '',
             controleEsfincter: '',
-            
-            // Alimentação
             aleitamentoMaterno: '',
             tempoAleitamento: '',
             introducaoAlimentar: '',
@@ -1403,16 +1404,12 @@
             degluticao: '',
             usaMamadeira: '',
             usaChupeta: '',
-            
-            // Saúde
             doencasInfancia: '',
             cirurgias: '',
             alergias: '',
             medicamentosContinuos: '',
             internacoes: '',
             acompanhamentoMedico: '',
-            
-            // Audição e Visão
             triagemAuditiva: '',
             otitesFrequentes: '',
             cirurgiasOuvido: '',
@@ -1420,16 +1417,12 @@
             dificuldadesVisuais: '',
             usaOculos: '',
             estrabismo: '',
-            
-            // Sono
             dormeBem: '',
             horasSono: '',
             ronca: '',
             respiraBoca: '',
             bruxismo: '',
             pesadelos: '',
-            
-            // Escolaridade
             frequentaEscola: '',
             serieEscolar: '',
             nomeEscola: '',
@@ -1438,15 +1431,11 @@
             relacionamentoColegas: '',
             dificuldadesEscolares: '',
             apoioPedagogico: '',
-            
-            // História Familiar
             composicaoFamiliar: '',
             quemMoraCom: '',
             linguaFalada: '',
             casosSemelhantesFamilia: '',
             observacoesFamilia: '',
-            
-            // Observações Gerais
             observacoesGerais: '',
             dataPreenchimento: '',
             preenchidoPor: ''
@@ -1458,7 +1447,7 @@
         let pacientes = [];
         let sessoes = [];
         let tokens = {};
-        let agenda = { times: DEFAULT_TIMES, recurring: {} };
+        let agenda = { times: [...DEFAULT_TIMES], recurring: {} };
         let fotos = {};
         let evolucoes = {};
         let tema = 'dark';
@@ -1467,6 +1456,7 @@
         let alertTimeout = null;
         let currentTokenSessionId = null;
         let debtFilterActive = false;
+        let tokenFilterActive = false; // NOVO: filtro de tokens pendentes
         let notificationsEnabled = false;
         let notificationInterval = null;
         let currentPhotoFile = null;
@@ -1474,24 +1464,42 @@
         let currentEvolucaoId = null;
 
         // ============================================
+        // CORREÇÃO: Função para obter data local correta
+        // ============================================
+        function getLocalDateISO() {
+            const d = new Date();
+            // Ajustar para timezone local
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        // ============================================
         // CARREGAR DADOS DO LOCALSTORAGE
         // ============================================
         function carregarDados() {
             try {
-                pacientes = JSON.parse(localStorage.getItem(STORAGE_KEYS.PATIENTS)) || [];
-                sessoes = JSON.parse(localStorage.getItem(STORAGE_KEYS.SESSIONS)) || [];
-                agenda = JSON.parse(localStorage.getItem(STORAGE_KEYS.SCHEDULE)) || { times: DEFAULT_TIMES, recurring: {} };
-                tokens = JSON.parse(localStorage.getItem(STORAGE_KEYS.TOKENS)) || {};
-                fotos = JSON.parse(localStorage.getItem(STORAGE_KEYS.PHOTOS)) || {};
-                evolucoes = JSON.parse(localStorage.getItem(STORAGE_KEYS.EVOLUCOES)) || {};
-                tema = localStorage.getItem(STORAGE_KEYS.THEME) || 'dark';
+                const savedPacientes = localStorage.getItem(STORAGE_KEYS.PATIENTS);
+                const savedSessoes = localStorage.getItem(STORAGE_KEYS.SESSIONS);
+                const savedAgenda = localStorage.getItem(STORAGE_KEYS.SCHEDULE);
+                const savedTokens = localStorage.getItem(STORAGE_KEYS.TOKENS);
+                const savedFotos = localStorage.getItem(STORAGE_KEYS.PHOTOS);
+                const savedEvolucoes = localStorage.getItem(STORAGE_KEYS.EVOLUCOES);
+                const savedTheme = localStorage.getItem(STORAGE_KEYS.THEME);
+                
+                pacientes = savedPacientes ? JSON.parse(savedPacientes) : [];
+                sessoes = savedSessoes ? JSON.parse(savedSessoes) : [];
+                agenda = savedAgenda ? JSON.parse(savedAgenda) : { times: [...DEFAULT_TIMES], recurring: {} };
+                tokens = savedTokens ? JSON.parse(savedTokens) : {};
+                fotos = savedFotos ? JSON.parse(savedFotos) : {};
+                evolucoes = savedEvolucoes ? JSON.parse(savedEvolucoes) : {};
+                tema = savedTheme || 'dark';
                 
                 console.log('📥 Dados carregados:', {
                     pacientes: pacientes.length,
                     sessoes: sessoes.length,
-                    tokens: Object.keys(tokens).length,
-                    fotos: Object.keys(fotos).length,
-                    evolucoes: Object.keys(evolucoes).length
+                    tokens: Object.keys(tokens).length
                 });
                 
                 return true;
@@ -1506,28 +1514,13 @@
         // ============================================
         function salvarTudo() {
             try {
-                // Salvar pacientes
                 localStorage.setItem(STORAGE_KEYS.PATIENTS, JSON.stringify(pacientes));
-                
-                // Salvar sessões
                 localStorage.setItem(STORAGE_KEYS.SESSIONS, JSON.stringify(sessoes));
-                
-                // Salvar agenda
                 localStorage.setItem(STORAGE_KEYS.SCHEDULE, JSON.stringify(agenda));
-                
-                // Salvar tokens
                 localStorage.setItem(STORAGE_KEYS.TOKENS, JSON.stringify(tokens));
-                
-                // Salvar fotos
                 localStorage.setItem(STORAGE_KEYS.PHOTOS, JSON.stringify(fotos));
-                
-                // Salvar evoluções
                 localStorage.setItem(STORAGE_KEYS.EVOLUCOES, JSON.stringify(evolucoes));
-                
-                // Salvar tema
                 localStorage.setItem(STORAGE_KEYS.THEME, tema);
-                
-                // Salvar versão
                 localStorage.setItem(STORAGE_KEYS.VERSION, APP_VERSION);
                 
                 console.log('✅ Todos os dados salvos com sucesso!');
@@ -1546,24 +1539,17 @@
         function backupCompleto() {
             try {
                 const dados = {
-                    // Metadados
                     versao: APP_VERSION,
                     dataExport: new Date().toISOString(),
                     nomeClinica: CLINIC_NAME,
-                    
-                    // Dados principais
                     pacientes: pacientes,
                     sessoes: sessoes,
                     agenda: agenda,
                     tokens: tokens,
                     fotos: fotos,
                     evolucoes: evolucoes,
-                    
-                    // Dados de configuração
                     tema: tema,
                     notificacoes: notificationsEnabled,
-                    
-                    // Estatísticas para verificação
                     stats: {
                         totalPacientes: pacientes.length,
                         totalSessoes: sessoes.length,
@@ -1573,7 +1559,6 @@
                     }
                 };
                 
-                // Criar arquivo
                 const blob = new Blob([JSON.stringify(dados, null, 2)], { type: 'application/json' });
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
@@ -1582,7 +1567,6 @@
                 a.click();
                 URL.revokeObjectURL(url);
                 
-                // Mostrar estatísticas
                 const statsMsg = `
                     ✅ Backup criado com sucesso!
                     
@@ -1592,8 +1576,6 @@
                     • Tokens: ${dados.stats.totalTokens}
                     • Fotos: ${dados.stats.totalFotos}
                     • Evoluções: ${dados.stats.totalEvolucoes}
-                    
-                    💾 Arquivo: backup_clinicflow_${new Date().toISOString().split('T')[0]}.json
                 `;
                 
                 Utils.showAlert(statsMsg, 'success', 5000);
@@ -1619,7 +1601,7 @@
                         throw new Error('Arquivo não reconhecido como backup');
                     }
                     
-                    // Restaurar dados
+                    // Restaurar dados com verificação de existência
                     if (dados.pacientes) pacientes = dados.pacientes;
                     if (dados.sessoes) sessoes = dados.sessoes;
                     if (dados.agenda) agenda = dados.agenda;
@@ -1633,8 +1615,8 @@
                     
                     // Mostrar resultado
                     const stats = dados.stats || {
-                        totalPacientes: dados.pacientes?.length || 0,
-                        totalSessoes: dados.sessoes?.length || 0,
+                        totalPacientes: (dados.pacientes || []).length,
+                        totalSessoes: (dados.sessoes || []).length,
                         totalTokens: Object.keys(dados.tokens || {}).length,
                         totalFotos: Object.keys(dados.fotos || {}).length,
                         totalEvolucoes: Object.keys(dados.evolucoes || {}).length
@@ -1650,13 +1632,12 @@
                         • Fotos: ${stats.totalFotos}
                         • Evoluções: ${stats.totalEvolucoes}
                         
-                        🔄 A página será recarregada...
+                        🔄 A página será recarregada em 3 segundos...
                     `;
                     
                     Utils.showAlert(msg, 'success', 5000);
                     
-                    // Recarregar a página após 2 segundos
-                    setTimeout(() => location.reload(), 2000);
+                    setTimeout(() => location.reload(), 3000);
                     
                 } catch (erro) {
                     console.error('Erro ao restaurar backup:', erro);
@@ -1668,7 +1649,7 @@
         }
 
         // ============================================
-        // UTILS
+        // UTILS (CORRIGIDO)
         // ============================================
         const $ = (id) => document.getElementById(id);
 
@@ -1678,8 +1659,7 @@
             },
 
             todayISO() {
-                const d = new Date();
-                return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+                return getLocalDateISO();
             },
 
             nowTime() {
@@ -1693,7 +1673,6 @@
                 
                 let str = String(val).trim().replace(/[R$\s]/g, '');
                 
-                // Formato brasileiro: 1.100,00 -> 1100.00
                 if (str.includes(',') && str.includes('.')) {
                     str = str.replace(/\./g, '').replace(',', '.');
                 } else if (str.includes(',')) {
@@ -1729,12 +1708,9 @@
 
             formatDate(dateStr) {
                 if (!dateStr) return '';
-                return new Date(dateStr).toLocaleDateString('pt-BR');
-            },
-
-            formatDateTime(dateStr) {
-                if (!dateStr) return '';
-                return new Date(dateStr).toLocaleString('pt-BR');
+                // Garantir que a data seja interpretada no fuso local
+                const [year, month, day] = dateStr.split('-');
+                return new Date(year, month - 1, day).toLocaleDateString('pt-BR');
             },
 
             showAlert(message, type = 'success', duration = 3000) {
@@ -1753,8 +1729,9 @@
 
             calculateAge(birthDate) {
                 if (!birthDate) return '';
+                const [year, month, day] = birthDate.split('-');
                 const today = new Date();
-                const birth = new Date(birthDate);
+                const birth = new Date(year, month - 1, day);
                 let age = today.getFullYear() - birth.getFullYear();
                 const m = today.getMonth() - birth.getMonth();
                 if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
@@ -1763,62 +1740,6 @@
                 return age + ' anos';
             }
         };
-
-        // ============================================
-        // INICIALIZAÇÃO
-        // ============================================
-        function init() {
-            // Carregar dados salvos
-            carregarDados();
-            
-            // Renderizar app
-            renderApp();
-            renderModals();
-            
-            // Aplicar tema
-            if (tema === 'light') {
-                document.body.classList.add('light-mode');
-                $('themeToggle').innerHTML = '<i class="fas fa-moon"></i>';
-            }
-            
-            // Configurar datas
-            $('date').value = Utils.todayISO();
-            $('schedRef').value = Utils.todayISO();
-            $('cStartDate').value = Utils.todayISO();
-            $('cEndDate').value = Utils.addDays(Utils.todayISO(), 30);
-            
-            $('today').innerHTML = new Date().toLocaleDateString('pt-BR', {
-                weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
-            });
-
-            // Inicializar serviços
-            Tokens.verificarZerarMensal();
-            Notifications.init();
-
-            // Evento de importação
-            $('importFile')?.addEventListener('change', (e) => {
-                if (e.target.files[0]) {
-                    restaurarBackup(e.target.files[0]);
-                }
-            });
-
-            // Inicializar UI
-            PWA.init();
-            Shortcuts.init();
-            Tabs.init();
-
-            // Renderizar views
-            DailyView.renderPatientSelect();
-            DailyView.render();
-            PatientsView.renderFolders();
-            ScheduleView.render();
-            DashboardView.render();
-            ReportsView.generate();
-
-            setTimeout(() => ScheduleForm.updateDays(), 100);
-            
-            console.log('🚀 Sistema iniciado com sucesso!');
-        }
 
         // ============================================
         // PHOTOS
@@ -1904,7 +1825,7 @@
         };
 
         // ============================================
-        // SESSIONS MODEL
+        // SESSIONS MODEL (CORRIGIDO)
         // ============================================
         const Sessions = {
             getAll() { return sessoes; },
@@ -1945,7 +1866,7 @@
             },
 
             getByMonth(month) {
-                return sessoes.filter(s => s.date.startsWith(month));
+                return sessoes.filter(s => s.date && s.date.startsWith(month));
             },
 
             toggleDid(id) {
@@ -1969,13 +1890,19 @@
                 return this.update(id, { value });
             },
 
+            // NOVO: Editar sessão completa
+            editSession(id, updates) {
+                return this.update(id, updates);
+            },
+
             getPatientStats(patientId) {
                 const sessions = this.getByPatient(patientId);
                 return {
                     total: sessions.length,
                     realizadas: sessions.filter(s => s.did === 'realizou').length,
                     faltas: sessions.filter(s => s.did === 'nao').length,
-                    debt: sessions.filter(s => s.paid !== 'pago').reduce((sum, s) => sum + (Number(s.value) || 0), 0)
+                    debt: sessions.filter(s => s.did === 'realizou' && s.paid !== 'pago')
+                        .reduce((sum, s) => sum + (Number(s.value) || 0), 0)
                 };
             },
 
@@ -1986,8 +1913,8 @@
                     total: sessions.length,
                     realizadas: realizadas.length,
                     faltas: sessions.filter(s => s.did === 'nao').length,
-                    faturamento: realizadas.reduce((sum, s) => sum + (Number(s.value) || 0), 0),
-                    aReceber: sessions.filter(s => s.paid !== 'pago').reduce((sum, s) => sum + (Number(s.value) || 0), 0)
+                    faturamento: realizadas.filter(s => s.paid === 'pago').reduce((sum, s) => sum + (Number(s.value) || 0), 0),
+                    aReceber: realizadas.filter(s => s.paid !== 'pago').reduce((sum, s) => sum + (Number(s.value) || 0), 0)
                 };
             }
         };
@@ -2016,7 +1943,7 @@
             },
 
             resetTimes() {
-                agenda.times = DEFAULT_TIMES;
+                agenda.times = [...DEFAULT_TIMES];
                 salvarTudo();
             },
 
@@ -2033,7 +1960,7 @@
 
             removeRecurring(day, time) {
                 const key = Utils.recurKey(day, time);
-                if (agenda.recurring) {
+                if (agenda.recurring && agenda.recurring[key]) {
                     delete agenda.recurring[key];
                     salvarTudo();
                 }
@@ -2075,6 +2002,7 @@
                     const [day, time] = key.split('|');
                     const dayNum = parseInt(day);
                     const patient = pacientes.find(p => p.id === entry.patientId);
+                    if (!patient) return;
                     
                     let daysToAdd = dayNum - refDay;
                     if (daysToAdd < 0) daysToAdd += 7;
@@ -2086,7 +2014,7 @@
                     result.push({
                         date: nextDate,
                         time,
-                        patient: patient?.name || '?',
+                        patient: patient.name,
                         patientId: entry.patientId,
                         days: daysToAdd
                     });
@@ -2097,7 +2025,7 @@
         };
 
         // ============================================
-        // TOKENS MODEL
+        // TOKENS MODEL (COM NOVAS FUNÇÕES)
         // ============================================
         const Tokens = {
             getAll() { return tokens; },
@@ -2161,6 +2089,28 @@
                 });
                 
                 return result.sort((a, b) => b.date.localeCompare(a.date));
+            },
+
+            // NOVO: Obter pacientes com tokens pendentes
+            getPacientesPendentes() {
+                const pacientesPendentes = [];
+                const pacientesMap = new Map();
+                
+                Object.entries(tokens).forEach(([id, token]) => {
+                    if (token.status === 'pendente') {
+                        const patient = pacientes.find(p => p.id === token.patientId);
+                        if (patient && !pacientesMap.has(patient.id)) {
+                            pacientesMap.set(patient.id, {
+                                id: patient.id,
+                                nome: patient.name,
+                                tokenId: id,
+                                tokenDate: token.date
+                            });
+                        }
+                    }
+                });
+                
+                return Array.from(pacientesMap.values());
             },
 
             countByPatient(patientId, status, month = null) {
@@ -2331,7 +2281,7 @@
         };
 
         // ============================================
-        // COMPONENTS
+        // COMPONENTS (CORRIGIDO)
         // ============================================
         const Components = {
             pill(text, type = 'default') {
@@ -2535,6 +2485,22 @@
                 `;
             },
 
+            tokenPendenteCard(paciente) {
+                return `
+                    <div class="list-item" onclick="PatientActions.openFolder('${paciente.id}')" style="cursor: pointer;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <strong>${Utils.escapeHtml(paciente.nome)}</strong>
+                                <div class="muted">
+                                    Token pendente desde ${Utils.formatDate(paciente.tokenDate)}
+                                </div>
+                            </div>
+                            <span class="pill pill-warning">⏳ Pendente</span>
+                        </div>
+                    </div>
+                `;
+            },
+
             evolucaoCard(evolucao) {
                 return `
                     <div class="timeline-item">
@@ -2613,7 +2579,7 @@
         };
 
         // ============================================
-        // VIEWS
+        // VIEWS (CORRIGIDAS)
         // ============================================
         const DashboardView = {
             render() {
@@ -2653,7 +2619,9 @@
                         
                         if (diff > 0 && diff <= 15) {
                             const patient = Patients.getById(entry.patientId);
-                            proximos.push({ name: patient?.name || '?', time });
+                            if (patient) {
+                                proximos.push({ name: patient.name, time });
+                            }
                         }
                     }
                 });
@@ -2868,6 +2836,33 @@
                     patientsList = pacientes.filter(p => p.name.toLowerCase().includes(search));
                 }
 
+                // NOVO: Filtro de tokens pendentes
+                if (tokenFilterActive) {
+                    const pacientesPendentes = Tokens.getPacientesPendentes();
+                    const pacientesIds = new Set(pacientesPendentes.map(p => p.id));
+                    patientsList = patientsList.filter(p => pacientesIds.has(p.id));
+                    
+                    // Renderizar lista especial para tokens pendentes
+                    const container = $('patientFolders');
+                    if (container) {
+                        if (patientsList.length === 0) {
+                            container.innerHTML = '<div class="muted" style="text-align: center; padding: 2rem;">Nenhum paciente com token pendente</div>';
+                            return;
+                        }
+                        
+                        const pacientesPendentesCompletos = pacientesPendentes.map(p => {
+                            const patient = pacientes.find(pat => pat.id === p.id);
+                            return {
+                                ...p,
+                                nome: patient?.name || '?'
+                            };
+                        });
+                        
+                        container.innerHTML = pacientesPendentesCompletos.map(p => Components.tokenPendenteCard(p)).join('');
+                        return;
+                    }
+                }
+
                 if (debtFilterActive) {
                     patientsList = patientsList.filter(p => {
                         const stats = Sessions.getPatientStats(p.id);
@@ -3051,6 +3046,9 @@
                                     <button class="btn btn-sm btn-secondary" onclick="event.stopPropagation(); SessionActions.togglePaid('${s.id}')">
                                         <i class="fas fa-dollar-sign"></i>
                                     </button>
+                                    <button class="btn btn-sm btn-secondary" onclick="event.stopPropagation(); SessionActions.openEditModal('${s.id}')">
+                                        <i class="fas fa-pen"></i>
+                                    </button>
                                     ${p?.serviceType === 'cassems' ? `
                                         <button class="btn btn-sm btn-secondary" onclick="event.stopPropagation(); TokenActions.openModal('${s.id}', '${p.name}', '${s.date}')">
                                             <i class="fas fa-ticket-alt"></i>
@@ -3111,8 +3109,22 @@
 
             toggleDebtFilter() {
                 debtFilterActive = !debtFilterActive;
+                tokenFilterActive = false; // Desativar filtro de tokens
                 const btn = $('onlyDebtFolders');
+                const tokenBtn = $('tokenFilterBtn');
                 if (btn) btn.classList.toggle('btn-primary', debtFilterActive);
+                if (tokenBtn) tokenBtn.classList.remove('active');
+                this.renderFolders();
+            },
+
+            // NOVO: Alternar filtro de tokens pendentes
+            toggleTokenFilter() {
+                tokenFilterActive = !tokenFilterActive;
+                debtFilterActive = false; // Desativar filtro de débito
+                const tokenBtn = $('tokenFilterBtn');
+                const debtBtn = $('onlyDebtFolders');
+                if (tokenBtn) tokenBtn.classList.toggle('active', tokenFilterActive);
+                if (debtBtn) debtBtn.classList.remove('btn-primary');
                 this.renderFolders();
             }
         };
@@ -3176,7 +3188,7 @@
         };
 
         // ============================================
-        // ACTIONS
+        // ACTIONS (CORRIGIDAS)
         // ============================================
         const SessionActions = {
             toggleDid(id) {
@@ -3203,6 +3215,40 @@
                     this.refreshAll();
                     Utils.showAlert('Valor atualizado!', 'success');
                 }
+            },
+
+            // NOVO: Abrir modal de edição de sessão
+            openEditModal(id) {
+                const session = Sessions.getById(id);
+                if (!session) return;
+                
+                const patient = Patients.getById(session.patientId);
+                
+                const newDate = prompt('Nova data (AAAA-MM-DD):', session.date);
+                if (newDate === null) return;
+                
+                const newTime = prompt('Novo horário:', session.time || '');
+                if (newTime === null) return;
+                
+                const newDid = prompt('Status (realizou/nao):', session.did);
+                if (newDid === null) return;
+                
+                const newPaid = prompt('Pago? (pago/nao_pago):', session.paid);
+                if (newPaid === null) return;
+                
+                const newValue = prompt('Valor (R$):', session.value);
+                if (newValue === null) return;
+                
+                Sessions.editSession(id, {
+                    date: newDate,
+                    time: newTime,
+                    did: newDid,
+                    paid: newPaid,
+                    value: Utils.parseMoney(newValue)
+                });
+                
+                this.refreshAll();
+                Utils.showAlert('Sessão editada com sucesso!', 'success');
             },
 
             delete(id) {
@@ -4528,6 +4574,9 @@
                                             <button id="onlyDebtFolders" class="btn btn-sm btn-secondary" onclick="PatientsView.toggleDebtFilter()">
                                                 <i class="fas fa-dollar-sign"></i> Débito
                                             </button>
+                                            <button id="tokenFilterBtn" class="btn btn-sm token-filter-btn" onclick="PatientsView.toggleTokenFilter()">
+                                                <i class="fas fa-ticket-alt"></i> Tokens Pendentes
+                                            </button>
                                         </div>
                                         <div id="patientFolders" class="list"></div>
                                     </div>
@@ -5405,6 +5454,54 @@
         // ============================================
         // INICIALIZAÇÃO
         // ============================================
+        function init() {
+            // Carregar dados
+            carregarDados();
+            
+            // Renderizar app
+            renderApp();
+            renderModals();
+            
+            // Aplicar tema
+            Theme.init();
+
+            // Configurar datas (CORRIGIDO)
+            $('date').value = Utils.todayISO();
+            $('schedRef').value = Utils.todayISO();
+            $('cStartDate').value = Utils.todayISO();
+            $('cEndDate').value = Utils.addDays(Utils.todayISO(), 30);
+            
+            $('today').innerHTML = new Date().toLocaleDateString('pt-BR', {
+                weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+            });
+
+            // Inicializar serviços
+            Tokens.verificarZerarMensal();
+            Notifications.init();
+
+            // Evento de importação
+            $('importFile')?.addEventListener('change', (e) => {
+                if (e.target.files[0]) {
+                    restaurarBackup(e.target.files[0]);
+                }
+            });
+
+            // Inicializar UI
+            PWA.init();
+            Shortcuts.init();
+            Tabs.init();
+
+            // Renderizar views
+            DailyView.renderPatientSelect();
+            DailyView.render();
+            PatientsView.renderFolders();
+            ScheduleView.render();
+            DashboardView.render();
+            ReportsView.generate();
+
+            setTimeout(() => ScheduleForm.updateDays(), 100);
+        }
+
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', init);
         } else {
