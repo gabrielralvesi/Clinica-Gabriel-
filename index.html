@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-    <title>ClinicFlow Pro - Gestão de Clínica Profissional</title>
+    <title>ClinicFlow Pro - Sistema Completo de Gestão Clínica</title>
     
     <!-- Fontes modernas -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1319,17 +1319,17 @@
         // ============================================
         // CONFIGURAÇÕES
         // ============================================
-        const APP_VERSION = '22.0.0';
+        const APP_VERSION = '24.0.0';
         const CLINIC_NAME = "ClinicFlow Pro";
         const CLINIC_SUBTITLE = "Gestão de Clínica Profissional";
         const CLINIC_CRFA = "CRFa 5-13766";
 
         const STORAGE_KEYS = {
-            PATIENTS: "clinicflow_patients_v22",
-            SESSIONS: "clinicflow_sessions_v22",
-            SCHEDULE: "clinicflow_schedule_v22",
-            TOKENS: "clinicflow_tokens_v22",
-            THEME: "clinicflow_theme_v22",
+            PATIENTS: "clinicflow_patients_v24",
+            SESSIONS: "clinicflow_sessions_v24",
+            SCHEDULE: "clinicflow_schedule_v24",
+            TOKENS: "clinicflow_tokens_v24",
+            THEME: "clinicflow_theme_v24",
             VERSION: "clinicflow_version",
             NOTIFICATIONS: "clinicflow_notifications",
             PHOTOS: "clinicflow_photos",
@@ -1456,7 +1456,7 @@
         let alertTimeout = null;
         let currentTokenSessionId = null;
         let debtFilterActive = false;
-        let tokenFilterActive = false; // NOVO: filtro de tokens pendentes
+        let tokenFilterActive = false;
         let notificationsEnabled = false;
         let notificationInterval = null;
         let currentPhotoFile = null;
@@ -1464,20 +1464,39 @@
         let currentEvolucaoId = null;
 
         // ============================================
-        // CORREÇÃO: Função para obter data local correta
+        // FUNÇÕES UTILITÁRIAS
         // ============================================
+        const $ = (id) => document.getElementById(id);
+
         function getLocalDateISO() {
             const d = new Date();
-            // Ajustar para timezone local
             const year = d.getFullYear();
             const month = String(d.getMonth() + 1).padStart(2, '0');
             const day = String(d.getDate()).padStart(2, '0');
             return `${year}-${month}-${day}`;
         }
 
-        // ============================================
-        // CARREGAR DADOS DO LOCALSTORAGE
-        // ============================================
+        function salvarTudo() {
+            try {
+                localStorage.setItem(STORAGE_KEYS.PATIENTS, JSON.stringify(pacientes));
+                localStorage.setItem(STORAGE_KEYS.SESSIONS, JSON.stringify(sessoes));
+                localStorage.setItem(STORAGE_KEYS.SCHEDULE, JSON.stringify(agenda));
+                localStorage.setItem(STORAGE_KEYS.TOKENS, JSON.stringify(tokens));
+                localStorage.setItem(STORAGE_KEYS.PHOTOS, JSON.stringify(fotos));
+                localStorage.setItem(STORAGE_KEYS.EVOLUCOES, JSON.stringify(evolucoes));
+                localStorage.setItem(STORAGE_KEYS.THEME, tema);
+                localStorage.setItem(STORAGE_KEYS.VERSION, APP_VERSION);
+                
+                console.log('✅ Todos os dados salvos com sucesso!');
+                Utils.showAlert('✅ Dados salvos com sucesso!', 'success');
+                return true;
+            } catch (erro) {
+                console.error('❌ Erro ao salvar:', erro);
+                Utils.showAlert('❌ Erro ao salvar dados', 'error');
+                return false;
+            }
+        }
+
         function carregarDados() {
             try {
                 const savedPacientes = localStorage.getItem(STORAGE_KEYS.PATIENTS);
@@ -1505,30 +1524,6 @@
                 return true;
             } catch (e) {
                 console.error('Erro ao carregar dados:', e);
-                return false;
-            }
-        }
-
-        // ============================================
-        // SISTEMA DE SALVAMENTO ROBUSTO
-        // ============================================
-        function salvarTudo() {
-            try {
-                localStorage.setItem(STORAGE_KEYS.PATIENTS, JSON.stringify(pacientes));
-                localStorage.setItem(STORAGE_KEYS.SESSIONS, JSON.stringify(sessoes));
-                localStorage.setItem(STORAGE_KEYS.SCHEDULE, JSON.stringify(agenda));
-                localStorage.setItem(STORAGE_KEYS.TOKENS, JSON.stringify(tokens));
-                localStorage.setItem(STORAGE_KEYS.PHOTOS, JSON.stringify(fotos));
-                localStorage.setItem(STORAGE_KEYS.EVOLUCOES, JSON.stringify(evolucoes));
-                localStorage.setItem(STORAGE_KEYS.THEME, tema);
-                localStorage.setItem(STORAGE_KEYS.VERSION, APP_VERSION);
-                
-                console.log('✅ Todos os dados salvos com sucesso!');
-                Utils.showAlert('✅ Dados salvos com sucesso!', 'success');
-                return true;
-            } catch (erro) {
-                console.error('❌ Erro ao salvar:', erro);
-                Utils.showAlert('❌ Erro ao salvar dados', 'error');
                 return false;
             }
         }
@@ -1649,10 +1644,8 @@
         }
 
         // ============================================
-        // UTILS (CORRIGIDO)
+        // UTILS
         // ============================================
-        const $ = (id) => document.getElementById(id);
-
         const Utils = {
             uid() {
                 return Date.now().toString(36) + Math.random().toString(36).substring(2);
@@ -1708,9 +1701,13 @@
 
             formatDate(dateStr) {
                 if (!dateStr) return '';
-                // Garantir que a data seja interpretada no fuso local
                 const [year, month, day] = dateStr.split('-');
                 return new Date(year, month - 1, day).toLocaleDateString('pt-BR');
+            },
+
+            formatDateTime(dateStr) {
+                if (!dateStr) return '';
+                return new Date(dateStr).toLocaleString('pt-BR');
             },
 
             showAlert(message, type = 'success', duration = 3000) {
@@ -1825,7 +1822,7 @@
         };
 
         // ============================================
-        // SESSIONS MODEL (CORRIGIDO)
+        // SESSIONS MODEL
         // ============================================
         const Sessions = {
             getAll() { return sessoes; },
@@ -1890,7 +1887,6 @@
                 return this.update(id, { value });
             },
 
-            // NOVO: Editar sessão completa
             editSession(id, updates) {
                 return this.update(id, updates);
             },
@@ -2025,7 +2021,7 @@
         };
 
         // ============================================
-        // TOKENS MODEL (COM NOVAS FUNÇÕES)
+        // TOKENS MODEL
         // ============================================
         const Tokens = {
             getAll() { return tokens; },
@@ -2091,7 +2087,6 @@
                 return result.sort((a, b) => b.date.localeCompare(a.date));
             },
 
-            // NOVO: Obter pacientes com tokens pendentes
             getPacientesPendentes() {
                 const pacientesPendentes = [];
                 const pacientesMap = new Map();
@@ -2279,9 +2274,8 @@
                 return sentences.slice(0, 2).join('. ') + '.';
             }
         };
-
         // ============================================
-        // COMPONENTS (CORRIGIDO)
+        // COMPONENTS
         // ============================================
         const Components = {
             pill(text, type = 'default') {
@@ -2326,6 +2320,9 @@
                         </button>
                         <button class="btn btn-sm btn-secondary" onclick="SessionActions.editValue('${session.id}')">
                             <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm btn-secondary" onclick="SessionActions.openEditModal('${session.id}')">
+                            <i class="fas fa-pen"></i>
                         </button>
                         ${patient?.serviceType === 'cassems' ? 
                             `<button class="btn btn-sm btn-secondary" onclick="TokenActions.openModal('${session.id}', '${patient.name}', '${session.date}')">
@@ -2579,7 +2576,7 @@
         };
 
         // ============================================
-        // VIEWS (CORRIGIDAS)
+        // VIEWS
         // ============================================
         const DashboardView = {
             render() {
@@ -2836,29 +2833,16 @@
                     patientsList = pacientes.filter(p => p.name.toLowerCase().includes(search));
                 }
 
-                // NOVO: Filtro de tokens pendentes
                 if (tokenFilterActive) {
                     const pacientesPendentes = Tokens.getPacientesPendentes();
-                    const pacientesIds = new Set(pacientesPendentes.map(p => p.id));
-                    patientsList = patientsList.filter(p => pacientesIds.has(p.id));
-                    
-                    // Renderizar lista especial para tokens pendentes
                     const container = $('patientFolders');
                     if (container) {
-                        if (patientsList.length === 0) {
+                        if (pacientesPendentes.length === 0) {
                             container.innerHTML = '<div class="muted" style="text-align: center; padding: 2rem;">Nenhum paciente com token pendente</div>';
                             return;
                         }
                         
-                        const pacientesPendentesCompletos = pacientesPendentes.map(p => {
-                            const patient = pacientes.find(pat => pat.id === p.id);
-                            return {
-                                ...p,
-                                nome: patient?.name || '?'
-                            };
-                        });
-                        
-                        container.innerHTML = pacientesPendentesCompletos.map(p => Components.tokenPendenteCard(p)).join('');
+                        container.innerHTML = pacientesPendentes.map(p => Components.tokenPendenteCard(p)).join('');
                         return;
                     }
                 }
@@ -3109,7 +3093,7 @@
 
             toggleDebtFilter() {
                 debtFilterActive = !debtFilterActive;
-                tokenFilterActive = false; // Desativar filtro de tokens
+                tokenFilterActive = false;
                 const btn = $('onlyDebtFolders');
                 const tokenBtn = $('tokenFilterBtn');
                 if (btn) btn.classList.toggle('btn-primary', debtFilterActive);
@@ -3117,10 +3101,9 @@
                 this.renderFolders();
             },
 
-            // NOVO: Alternar filtro de tokens pendentes
             toggleTokenFilter() {
                 tokenFilterActive = !tokenFilterActive;
-                debtFilterActive = false; // Desativar filtro de débito
+                debtFilterActive = false;
                 const tokenBtn = $('tokenFilterBtn');
                 const debtBtn = $('onlyDebtFolders');
                 if (tokenBtn) tokenBtn.classList.toggle('active', tokenFilterActive);
@@ -3188,7 +3171,7 @@
         };
 
         // ============================================
-        // ACTIONS (CORRIGIDAS)
+        // ACTIONS
         // ============================================
         const SessionActions = {
             toggleDid(id) {
@@ -3217,7 +3200,6 @@
                 }
             },
 
-            // NOVO: Abrir modal de edição de sessão
             openEditModal(id) {
                 const session = Sessions.getById(id);
                 if (!session) return;
@@ -3956,7 +3938,6 @@
                 }
             }
         };
-
         // ============================================
         // SCHEDULE FORM
         // ============================================
